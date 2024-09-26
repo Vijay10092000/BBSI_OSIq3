@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Indirect-Hubspot</label>
+    <protected>false</protected>
+    <values>
+        <field>Producer_Id__c</field>
+        <value xsi:type="xsd:string">0032J00003jQ0SKQA0</value>
+    </values>
+    <values>
+        <field>Referral_Partner_Id__c</field>
+        <value xsi:type="xsd:string">0012J00002ZDtm0QAD</value>
+    </values>
+</CustomMetadata>

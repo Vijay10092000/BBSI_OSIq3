@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Gary_&amp;_Jennifer_2024</label>
+    <protected>false</protected>
+    <values>
+        <field>Campaign_Id__c</field>
+        <value xsi:type="xsd:string">63659d64-32fd-43d1-bc63-bb9a3a7e2100</value>
+    </values>
+    <values>
+        <field>Name__c</field>
+        <value xsi:type="xsd:string">Gary &amp; Jennifer 2024</value>
+    </values>
+</CustomMetadata>

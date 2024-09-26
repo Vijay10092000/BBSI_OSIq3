@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Construction Campaign_Mountain Region_Q3</label>
+    <protected>false</protected>
+    <values>
+        <field>Campaign_Id__c</field>
+        <value xsi:type="xsd:string">8689cd9a-e877-40d9-a705-4d609a34faaf</value>
+    </values>
+    <values>
+        <field>Name__c</field>
+        <value xsi:type="xsd:string">Construction Campaign_Mountain Region_Q3-22</value>
+    </values>
+</CustomMetadata>

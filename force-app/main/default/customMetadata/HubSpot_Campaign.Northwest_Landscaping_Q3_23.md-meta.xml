@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Northwest_Landscaping_Q3-23</label>
+    <protected>false</protected>
+    <values>
+        <field>Campaign_Id__c</field>
+        <value xsi:type="xsd:string">2b7168b2-4878-4fd1-be84-e174535e8fa0</value>
+    </values>
+    <values>
+        <field>Name__c</field>
+        <value xsi:type="xsd:string">Northwest_Landscaping_Q3-23</value>
+    </values>
+</CustomMetadata>

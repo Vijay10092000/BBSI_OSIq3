@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>BBSI Opposites_2024</label>
+    <protected>false</protected>
+    <values>
+        <field>Campaign_Id__c</field>
+        <value xsi:type="xsd:string">c003bf2a-b046-4b19-adda-a36ffadb51b8</value>
+    </values>
+    <values>
+        <field>Name__c</field>
+        <value xsi:type="xsd:string">BBSI Opposites 2024</value>
+    </values>
+</CustomMetadata>
