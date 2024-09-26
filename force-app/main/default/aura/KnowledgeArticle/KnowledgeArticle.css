@@ -1,0 +1,14 @@
+.THIS {
+}
+
+.THIS .message-text_size {
+    font-size: 16px;
+}
+
+.THIS .slds-select_container:before{
+    display:none;
+}
+
+.THIS .slds-select_container:after{
+    bottom: calc((1.75rem / 2) - 1px);
+}

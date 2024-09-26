@@ -1,0 +1,13 @@
+<!-- - Created by CElim on 2/22/2019. -->
+
+<aura:component description="Xmod" implements="force:hasRecordId,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome" access="global">
+    <div class="slds-theme_shade">
+        <div class="c-container">
+            <div class="slds-grid slds-wrap slds-theme_shade">
+                <div class="slds-col slds-size_9-of-12 slds-p-around_medium">
+                    <c:XmodRecommended aura:id="xmodRecommended"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

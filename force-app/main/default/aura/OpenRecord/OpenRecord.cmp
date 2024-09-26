@@ -1,0 +1,6 @@
+<aura:component implements="lightning:availableForFlowActions,lightning:availableForFlowScreens">
+	<lightning:navigation aura:id="navService"/>
+
+	<aura:attribute name="objectName" type="String"/>
+	<aura:attribute name="recordId" type="String"/>
+</aura:component>

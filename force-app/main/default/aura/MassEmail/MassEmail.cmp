@@ -1,0 +1,195 @@
+<aura:component
+	access="global"
+	controller="MassEmailController"
+	implements="flexipage:availableForAllPageTypes"
+	description="Send Mass Emails"
+>
+	<aura:attribute name="title" type="String" default="" />
+	<aura:attribute name="header" type="String" default="" />
+
+	<aura:attribute name="isSpinning" type="Boolean" default="false" />
+
+	<aura:attribute name="haveRequired" type="Boolean" default="false"/>
+
+	<aura:attribute name="fileType" type="List" default="['.csv']" />
+	<aura:attribute name="fileId" type="String" default="" />
+	<aura:attribute name="fileError" type="String" default="" />
+	<aura:attribute name="fileDataType" type="String" default="" />
+
+    <aura:attribute name="showFilePicker" type="boolean" default="true"/>
+
+	<aura:attribute name="optionFolders" type="List" default="[]"/>
+	<aura:attribute name="selectedFolder" type="String" default="" />
+
+	<aura:attribute name="optionTemplates" type="List" default="[]"/>
+    <aura:attribute name="selectedTemplate" type="String" default="" access="PRIVATE"/>
+
+	<aura:attribute name="sender" type="String" default="" />
+    <aura:attribute name="optionsSender" type="List" default="[
+		{label: 'Account Owner', value: 'Account Owner', description: 'Reply emails will be sent to the Account Owner.'},
+		{label: 'Benefits Representative', value: 'Benefits Representative', description: 'Reply emails will be sent to Account Benefits Representative.'},
+		{label: 'Current User', value: 'Current User', description: 'Reply emails will be sent to you.'},
+	]"/>
+
+	<aura:attribute name="selectedCC" type="List" default="[]" />
+	<aura:attribute name="optionsCC" type="List" default="[
+		{'label': 'Account Owner', 'value': 'Account Owner'},
+		{'label': 'Benefits Representative', 'value': 'Benefits Representative'},
+		{'label': 'Current User', 'value': 'Current User'}
+    ]"/>
+
+
+	<aura:attribute name="optionsTask" type="List" default="[
+		{'label': 'None', 'value': 'None', description: 'No Tasks will be created'},
+		{'label': 'Completed Email Task', 'value': 'CompletedEmailTask', description: 'A completed email Task will be created on each Account related to the emails.'}
+	]"/>
+    <aura:attribute name="selectedTask" type="String" default="None"/>
+
+    <aura:attribute name="clientData" type="Object" default="[]"/>
+    <aura:attribute name="selected" type="List" default="[]"/>
+    <aura:attribute name="columnsPerson" type="List" default="[
+		{ label: 'Contact', fieldName: 'namePerson', type: 'phone'},
+		{ label: 'Account', fieldName: 'nameAccount', type: 'text'},
+		{ label: 'Owner', fieldName: 'nameOwner', type: 'email'},
+		{ label: 'Benefits Rep', fieldName: 'nameBenefitsRep', type: 'email'},
+	]"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+    <aura:import library="lightning:confirm" property="ConfirmDialog" />
+
+	<lightning:overlayLibrary aura:id="modalSenderEmail"/>
+
+	<!-- COMPONENT -->
+	<lightning:card title="{! v.title }">
+		<aura:if isTrue="{! v.isSpinning }">
+			<lightning:spinner alternativeText="Loading..."/>
+		</aura:if>
+
+		<div class="slds-var-m-left_medium slds-text-color_error">
+			<aura:unescapedHtml value="{! v.header }" />
+		</div>
+
+		<div class="slds-var-p-around_small" id="divMain">
+			<div class="slds-var-p-horizontal_small">
+				<p>
+				Mass Email allows the sending of emails from a CSV file to a list of Accounts identifiers, Contacts identifiers or Contact email addresses.
+				If the file contains Account ids, the emails are sent to the Primary Contact, otherwise to the contact given.
+				</p>
+			</div>
+
+			<div class="slds-grid slds-wrap slds-var-p-around_large">
+				<div class="slds-col slds-size_1-of-2">
+					<!-- Select the Email Template Folder-->
+					<lightning:select
+						aura:id="pickFolder"
+						name="pickFolder"
+						label="Email Template Folder"
+						required="true"
+						value="{! v.selectedFolder }"
+						onchange="{! c.handleChangeFolder }"
+					>
+						<option text="Select Email Folder..." value="" />
+						<aura:iteration items="{! v.optionFolders }" var="folder">
+							<option text="{! folder.label }" value="{! folder.value }"/>
+						</aura:iteration>
+					</lightning:select>
+
+					<!-- Select the Email Template -->
+					<lightning:select
+						aura:id="pickTemplate"
+						name="pickTemplate"
+						label="Email Template"
+						required="true"
+						value="{! v.selectedTemplate }"
+						onchange="{! c.checkRequired }"
+					>
+						<option text="Select Email Template..." value="" />
+						<aura:iteration items="{! v.optionTemplates }" var="template">
+							<option text="{! template.label }" value="{! template.value }"/>
+						</aura:iteration>
+					</lightning:select>
+
+					<!-- Who will be in the "Senders" email address? -->
+					<lightning:combobox
+						name = "sentFrom"
+						label = "Reply To"
+						options = "{!v.optionsSender}"
+						value="{! v.sender }"
+						placeholder = "Who is shown as sender"
+						onchange = "{!c.checkRequired}"
+						required = "true"
+					/>
+				</div>
+
+				<div class="slds-col slds-size_1-of-2 slds-var-p-around_large">
+					<!-- Who will receive a Carbon Copy of the email -->
+					<lightning:checkboxGroup
+						name="carbonCopy"
+						label="CC these users"
+						options="{! v.optionsCC }"
+						value="{! v.selectedCC }"
+					/>
+					<br/>
+					<lightning:combobox
+						name="Task Creation"
+						label="Task Creation"
+						options="{! v.optionsTask }"
+						value="{! v.selectedTask }"
+					/>
+				</div>
+			</div>
+
+			<div class="slds-var-p-around_medium">
+				<aura:if isTrue="{! v.showFilePicker }">
+					<!-- Drag-Drop CSV file -->
+					<lightning:fileUpload
+						label="CSV File"
+						name="csvFile"
+						disabled="false"
+						accept="{!v.fileType}"
+						multiple="true"
+						onuploadfinished="{!c.readFile}"
+					/>
+
+					<div class="slds-var-m-left_medium slds-text-color_error">
+						<aura:unescapedHtml value="{! v.fileError }" />
+					</div>
+					<br/>
+
+					<aura:set attribute="else">
+						<!-- CONTACT TABLE -->
+						<div style="height: 250px">
+							<lightning:datatable
+								aura:id="clients"
+								keyField="identifier"
+								columns="{! v.columnsPerson }"
+								data="{! v.clientData }"
+								column-widths-mode="auto"
+								hideCheckboxColumn="false"
+								selectedRows="{!v.selected}"
+								onrowselection="{!c.handleChangePerson}"
+							/>
+						</div>
+						<br/>
+					</aura:set>
+				</aura:if>
+			</div>
+
+			<div class="slds-var-p-around_medium">
+				<lightning:button variant="neutral"
+					label="Clear Data"
+					title="Clear Data"
+					onclick="{! c.clearData }"
+				/>
+
+				<lightning:button variant="brand"
+					label="Send Emails"
+					title="Send Emails"
+					disabled="{! !(v.haveRequired)}"
+					onclick="{!c.send}"
+				/>
+			</div>
+		</div>
+	</lightning:card>
+</aura:component>

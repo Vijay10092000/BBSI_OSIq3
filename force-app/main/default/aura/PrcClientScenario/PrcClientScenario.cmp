@@ -1,0 +1,233 @@
+<!--
+  - Copyright (c) 2018. Barrett Business Services, Inc. All Rights Reserved
+  - Created by agoganian on 10/8/2018
+ -->
+ <aura:component controller="PrcClientScenarioController" implements="force:hasRecordId,flexipage:availableForAllPageTypes" access="global">
+
+	<!-- Attributes -->
+	<aura:attribute name="renewal" type="sObject"/>
+	<aura:attribute name="pricingScenario" type="sObject"/>
+	<aura:attribute name="clientPricingScenario" type="sObject"/>
+	<aura:attribute name="clientId" type="String"/>
+	<aura:attribute name="renewalDate" type="Date"/>
+	<aura:attribute name="isProspect" type="Boolean" default="false"/>
+
+	<!-- Pricing Attributes -->
+	<aura:attribute name="renewalSummaryObj" type="sObject"/>
+	<aura:attribute name="markupData" type="sObject"/>
+	<aura:attribute name="markupDraftValues" type="sObject"/>
+	<aura:attribute name="grossMarginOption" type="String" default="optPayroll"/>
+	<!--<aura:handler name="change" value="{!v.markupDraftValues}" action="{! c.onMarkupValuesChange }" />-->
+
+	<!-- pricing datasets -->
+	<aura:attribute name="dataEEtoWCassocs" type="sObject"/>    <!-- List of EE-WC junction objects -->
+	<aura:attribute name="wcMap" type="Map"/>                   <!-- Map of PricingWCCodes from the list of EE-WC junction: dataEEtoWCassocs -->
+	<aura:attribute name="eeMap" type="Map"/>                   <!-- Map of PricingWCCodes from the list of EE-WC junction: dataEEtoWCassocs -->
+	<aura:attribute name="prcWorkComps" type="sObject"/>        <!-- List of all WC Codes including $0 payroll in code -->
+	<aura:attribute name="prcExpenses" type="sObject"/>
+	<aura:attribute name="prcClientInvestments" type="sObject"/>
+	<aura:attribute name="prcTaxes" type="sObject"/>
+	<aura:attribute name="xmodsRenewalYear" type="sObject"/>
+
+	<!-- pricing variables -->
+	<aura:attribute name="projFactor" type="Decimal" default="1.0"/>
+	<aura:attribute name="refCommAmt" type="Currency" default="0"/>
+	<aura:attribute name="bdmCommAmt" type="Currency" default="0"/>
+	<aura:attribute name="totTaxablePayroll" type="Currency" default="0"/>
+	<aura:attribute name="totTaxablePayrollNoOwner" type="Currency" default="0"/>
+	<aura:attribute name="totPremPayroll" type="Currency" default="0"/>
+	<aura:attribute name="totalHeadcount" type="Integer" default="0"/>
+	<aura:attribute name="activeHeadcount" type="Integer" default="0"/>
+	<aura:attribute name="totTaxesNoOwner" type="Currency" default="0"/>
+	<aura:attribute name="totHours" type="Decimal" default="0"/>
+
+	<!-- pricing variables (in Summary Obj) -->
+	<aura:attribute name="totPayroll" type="Currency" default="0"/>
+	<aura:attribute name="totTaxes" type="Currency" default="0"/>
+	<aura:attribute name="totGrossMargin" type="Currency" default="0"/>
+    <aura:attribute name="totBilling" type="Currency" default="0"/>
+	<aura:attribute name="totWcPremiums" type="Currency" default="0"/>
+	<aura:attribute name="totComms" type="Currency" default="0"/>
+	<aura:attribute name="totExpenses" type="Currency" default="0"/> 
+	<aura:attribute name="totBuMin3x" type="Decimal" default="0"/> 
+	<aura:attribute name="totBuMax5x" type="Decimal" default="0"/>
+	<aura:attribute name="totMaxSI" type="Currency" default="0"/> 
+	<aura:attribute name="totClaims" type="Decimal" default="0"/> 
+	<aura:attribute name="totUltmExpected" type="Currency" default="0"/> 
+
+	<aura:attribute name="xmod" type="Decimal" default="0"/> 
+	<aura:attribute name="FTE" type="Decimal" default="0"/>
+	<aura:attribute name="taxBurdenPercent" type="Decimal" default="0"/>
+	<aura:attribute name="taxBurdenPercentNoOwner" type="Decimal" default="0"/>
+
+	<!-- FLUX Attributes -->
+	<aura:attribute name="containerName" type="String" default="parentContainer"/>
+	<aura:attribute name="someAttribute" type="Integer" default="0"/>
+
+	<!-- SEND notifications from Parent component (PrcClientScenario) to child components (i.e.: PrcXmod) -->
+	<aura:registerEvent name="FluxContainer_getState" type="c:FluxContainer_getState" />
+
+	<!-- RECEIVE notifications from child components (i.e.: PrcEmployee) -->
+	<aura:handler name="setState" event="c:FluxContainer_setState" action="{! c.handleSetState }" />
+
+	<aura:attribute name="activeSections" type="List" />
+
+	<!-- Public Methods -->
+	<aura:method name="changeRecordId" action="{!c.onRecordIdChange}">
+		<aura:attribute name="param1" type="String" default="none"/>
+	</aura:method>
+	<aura:method name="changeRenewalDate" action="{!c.onRenewalDateChange}">
+		<aura:attribute name="param1" type="Date" default="none"/>
+	</aura:method>
+	<aura:method name="createWorksheetSummary" action="{!c.onCreateWorksheetSummary}" />
+	<aura:method name="createPdf" action="{!c.onCreatePdf}">
+        <aura:attribute name="selectedReport" type="String" default="none"/>
+	</aura:method>
+
+	<!-- Handlers -->
+
+	<!-- Common Attributes -->
+	<aura:attribute name="recordId" type="Id" access="public" default="" />
+	<aura:attribute name="sObjectType" type="String" required="true" default="ClientPricingScenario__c" access="public" />
+	<aura:attribute name="maxRows" type="Integer" default="20" />
+	<aura:attribute name="fields" type="String" />
+	<aura:attribute name="records" type="Object[]" />
+	<aura:attribute name="columns" type="List" />
+	<aura:attribute name="sObjectInfo" type="Object" default="ClientPricingScenario__c"/>
+	<aura:attribute name="isLoading" type="Boolean" default="false"/>
+	<aura:attribute name="nonProfit" type="String" default=""/>
+
+	<!-- All Reports -->
+	<aura:attribute name="selectedReport" type="String" default=""/>
+	
+	<!-- Pricing Summary Report -->
+	<aura:attribute name="openReportSettingDialog" type="Boolean" default="false"/>
+	<aura:attribute name="includeNotes" type="Boolean" default="false"/>
+	<aura:attribute name="notes" type="String" default=""/>
+	<!--<aura:attribute name="currentMarkupWcMap" type="Map" default="{}"/> --><!-- Map of current markup % - from getBillingHistories -->
+	<!--<aura:attribute name="siRateMap" type="Map" default="{}"/> --><!-- Map of Client's SI rate - from getSafetyIncentiveRates -->
+	<aura:attribute name="zeroPayrollWcCodes" type="sObject" default="[]"/>
+	<aura:attribute name="zeroPayrollColumns" type="List" />
+
+	<!-- Client Addendum Report -->
+	<aura:attribute name="isClientAddendumReport" type="Boolean"/>
+	<aura:attribute name="options" type="List" default="[{'label': 'No', 'value': 'No'},{'label': 'Yes', 'value': 'Yes'}]"/>
+	<aura:attribute name="includeOtDt" type="String" default="No"/>
+	<aura:attribute name="includeSi" type="String" default=""/>
+	
+	<!-- Common Handlers -->
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+	<!-- Common Libraries -->
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+
+	<div class="slds-grid slds-wrap slds-theme_shade">
+		<div class="slds-col slds-size_9-of-12 slds-p-around_medium">
+			<lightning:formattedText value="* Indicates the column is editable" />
+		</div>
+	</div>
+
+	<div class="slds-grid slds-wrap slds-theme_shade">
+		<div class="slds-col slds-size_9-of-12 slds-p-around_medium">
+			<c:PrcClientSummary aura:id="clientSummaryComp" sObjectType="PricingSummaryHistory__c"/>
+		</div>
+		<div class="slds-col slds-size_12-of-12 slds-p-around_medium">
+			<c:PrcMarginHistory aura:id="marginHistoryComp" sObjectType="PricingSummaryHistory__c" />
+		</div>
+		<div class="slds-col slds-size_12-of-12 slds-p-around_medium">
+			<c:PrcMarkup aura:id="markupComp" sObjectType="PricingWcCode__c" />
+		</div>
+		<div class="slds-col slds-size_12-of-12 slds-p-around_small">
+			<lightning:accordion allowMultipleSectionsOpen="true" onsectiontoggle="{! c.handleSectionToggle }" activeSectionName="{! v.activeSections }">
+<!--				<lightning:accordionSection name="alternativeMarkupSection" label="Alternative Markup Calculation">-->
+<!--					<div class="slds-col slds-size_12-of-12 slds-p-around_medium">-->
+<!--						<c:PrcAlternativeMarkup aura:id="alternativeMarkupComp" sObjectType="PricingWcCode__c"/>-->
+<!--					</div>-->
+<!--				</lightning:accordionSection>-->
+				<lightning:accordionSection name="employeesCompSection" label="Payroll and Employer Taxes">
+					<aura:set attribute="actions">
+						<lightning:buttonMenu aura:id="eeHeightMenu" title="Select table size" menuAlignment="right" iconSize="x-small" onselect="{! c.handleEmpHeightSelect}">
+							<lightning:menuItem value="auto" label="Auto" />
+							<lightning:menuItem value="fixed" label="Fixed Height" />
+						</lightning:buttonMenu>
+					</aura:set>
+					<aura:set attribute="body">
+						<c:PrcEmployees aura:id="employeesComp" sObjectType="PricingEmployee__c"/>
+					</aura:set>
+				</lightning:accordionSection>
+				<lightning:accordionSection name="taxRatesCompSection" label="Employer Tax Rates">
+                    <div class="slds-col slds-size_6-of-12 slds-p-around_medium">
+						<c:PrcTaxRates aura:id="taxRatesComp" sObjectType="ERPayrollTax__c"/>
+					</div>
+				</lightning:accordionSection>
+				<lightning:accordionSection name="xmodCompSection" label="XMOD, Work Comp, and Safety Incentive">
+					<div class="slds-col slds-size_12-of-12 slds-p-around_medium">
+						<c:PrcXmod aura:id="xmodComp" sObjectType="PricingXmod__c"/>
+					</div>
+					<div class="slds-col slds-size_12-of-12 slds-p-around_medium">
+						<c:PrcWorkComp aura:id="workCompComp" sObjectType="PricingWcCode__c"/>
+					</div>
+					<div class="slds-col slds-size_9-of-12 slds-p-around_medium">
+						<c:PrcSafetyIncentive aura:id="safetyIncentiveComp" sObjectType="PricingSummaryHistory__c"/>
+					</div>
+				</lightning:accordionSection>
+				<lightning:accordionSection name="commissionsCompSection" label="Commission Expenses">
+					<div class="slds-col slds-size_9-of-12 slds-p-around_medium">
+						<c:PrcCommissions aura:id="commissionsComp" sObjectType="ClientPricingScenario__c" />
+					</div>
+				</lightning:accordionSection>
+				<lightning:accordionSection name="expensesCompSection" label="Client Investment">
+					<div class="slds-col slds-size_8-of-12 slds-p-around_medium">
+						<c:PrcExpenses aura:id="expensesComp" sObjectType="PricingExpense__c"/>
+					</div>
+				</lightning:accordionSection>
+			</lightning:accordion>
+		</div>
+	</div>
+
+	<aura:if isTrue="{!v.openReportSettingDialog}">
+		<!--###### MODAL BOX Start######-->
+		<section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+			<div class="slds-modal__container">
+				<!-- ###### MODAL BOX HEADER Start ######-->
+				<header class="slds-modal__header">
+					<lightning:buttonIcon iconName="utility:close"
+										  onclick="{! c.cancelNotes }"
+										  alternativeText="close"
+										  variant="brand"
+										  class="slds-modal__close"/>
+					<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">{!v.selectedReport}</h2>
+				</header>
+				<!--###### MODAL BOX BODY Part Start######-->
+				<div class="slds-modal__content slds-p-around_small" id="modal-content-id-1">
+					<aura:if isTrue="{!v.includeNotes}">
+						<div>Notes (optional):<lightning:input type="text" aura:id="notes" value="{!v.notes}"/><br/><br/></div>
+					</aura:if>
+
+					<aura:if isTrue="{!v.isClientAddendumReport}">
+						<div>
+							<lightning:radioGroup name="includeOtDtButton" label="Include OT/DT?" options="{!v.options}" value="{!v.includeOtDt}" type="button"/>
+							<br/><br/>
+						</div>
+					</aura:if>
+
+					<aura:if isTrue="{!v.zeroPayrollWcCodes.length > 0}">
+						<div style="height: auto">
+							<lightning:formattedText value="Select WC Code(s) with $0 Payroll to include:"/>
+							<lightning:datatable aura:id="zeroPayrollTable" keyField="Id" data="{!v.zeroPayrollWcCodes}" columns="{!v.zeroPayrollColumns}" 
+												 onsave="{!c.handleSaveTable}" hideCheckboxColumn="false"/>
+							<br/><br/>
+						</div>
+					</aura:if>
+				</div>
+				<!--###### MODAL BOX FOOTER Part Start ######-->
+				<footer class="slds-modal__footer">
+					<lightning:button variant="brand" label="Cancel" title="Cancel" onclick="{! c.cancelNotes }"/>
+					<lightning:button variant="brand" label="Create Report" title="Create Report" onclick="{! c.createPdf }"/>
+				</footer>
+			</div>
+		</section>
+		<div class="slds-backdrop slds-backdrop_open"></div>
+		<!--###### MODAL BOX Part END Here ######-->
+	</aura:if>
+</aura:component>

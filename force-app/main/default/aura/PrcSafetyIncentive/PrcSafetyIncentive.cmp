@@ -1,0 +1,47 @@
+<!--
+ - Copyright (c) 2019. Barrett Business Services, Inc. All Rights Reserved
+ - Created by CElim on 1/25/2019.
+ -->
+
+<aura:component controller="PrcMarginHistoryController" implements="flexipage:availableForAllPageTypes" access="global">
+
+    <!-- Attributes -->
+    <aura:attribute name="clientPricingScenario" type="sObject"/>
+    <aura:attribute name="clientId" type="String"/>
+    <aura:attribute name="renewalSummaryObj" type="sObject"/>
+
+    <!-- Pricing Attributes -->
+    <aura:handler event="c:FluxContainer_getState" action="{!c.onAppEvent}"/>
+    <aura:registerEvent name="setState" type="c:FluxContainer_setState"/>
+    <aura:attribute name="containerName" type="String" default="safetyIncentive"/>
+
+    <!-- Common Attributes -->
+    <aura:attribute name="data" type="sObject"/>
+    <aura:attribute name="clientPricScenId" type="String"/>
+    <aura:attribute name="sObjectType" type="String" required="true" default="PricingSummaryHistory__c" access="public" />
+    <aura:attribute name="maxRows" type="Integer" default="20" />
+    <aura:attribute name="records" type="Object[]" />
+    <aura:attribute name="columns" type="List" />
+    <aura:attribute name="sObjectInfo" type="Object" default="PricingSummaryHistory__c"/>
+    <aura:attribute name="isLoading" type="Boolean" default="false"/>
+	<aura:attribute name="isProspect" type="Boolean" default="false"/>
+
+    <!-- Common Handlers -->
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    <!-- Common Libraries -->
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+
+    <aura:if isTrue="{!!v.isProspect}">
+        <div class="slds-text-heading_small slds-p-bottom--small">
+            SAFETY INCENTIVE HISTORY
+        </div>
+        <div style="height: auto">
+            <lightning:datatable
+                    keyField="Id"
+                    data="{! v.data }"
+                    columns="{! v.columns }"
+                    hideCheckboxColumn="true"/>
+        </div>
+    </aura:if>
+
+</aura:component>

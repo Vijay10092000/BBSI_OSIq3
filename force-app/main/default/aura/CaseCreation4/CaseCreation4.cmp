@@ -1,0 +1,257 @@
+<aura:component implements="lightning:actionOverride,lightning:availableForFlowScreens,flexipage:availableForRecordHome,force:hasRecordId,lightning:isUrlAddressable" access="global" controller="FieldSetComponentController">
+    <aura:attribute name="isSpinning" type="Boolean" default="false"/>
+    <aura:attribute name="recordTypeDevName" type="String" />
+    <aura:attribute name="recordTypeId" type="String"/>
+    <aura:attribute name="objectApiName" type="String"/>
+    <aura:attribute name="dynamicData" type="Map"/> 
+    <aura:attribute name="fieldsStatic" type="List"/>
+    <aura:attribute name="fieldsDynamic" type="List"/>
+    <aura:attribute name="dynamicAfter" type="Integer"/>
+    <aura:attribute name="fieldSetName" type="String"/>
+    <aura:attribute name="iconName" type="String"/>
+    <aura:attribute name="title" type="String"/> 
+    <aura:attribute name="mode" type="String"/> 
+    <aura:attribute name="showDynamic" type="Boolean" default="false"/>
+    <aura:attribute name="showError" type="Boolean" default="false"/>
+    <aura:attribute name="showOnlyWarning" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="fileHolderId" type="String"/>
+    <aura:attribute name="files" type="ContentDocument[]"/>
+    <aura:attribute name="userId" type="String"/>
+    
+	<aura:handler name="change" value="{!v.pageReference}" action="{!c.onPageReferenceChanged}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+    <aura:if isTrue="{!v.isSpinning}">
+        <div class="exampleHolder">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </div>
+    </aura:if>
+
+    <div class="slds-box slds-m-around_medium">
+        <aura:if isTrue="{!v.showOnlyWarning}">
+            <div id="warnId">
+                <div>
+                    <h5 class="slds-text-heading_small slds-align_absolute-center">Salesforce Cases are no longer used for this type of item.</h5>
+                    <br/>
+                    <h5 class="slds-text-heading_small slds-align_absolute-center">Please use MyHub.</h5>            
+                </div>
+            </div>
+			<br/>
+	
+			<lightning:button class="slds-m-bottom_xx-large" variant="brand" label="Back" title="Back" onclick="{!c.previousPage}"/>
+			<br/>
+			
+			<aura:set attribute="else">
+				<aura:if isTrue="{!v.showError}">
+					<div id="errorId" class="slds-notify slds-notify_toast slds-theme_error error-background">
+						<span class="slds-assistive-text">error</span>
+						<div class="slds-notify__content">
+							<h5 class="slds-text-heading_small slds-align_absolute-center">Error Message</h5>
+							<br/>
+							<p class="slds-align_absolute-center">{!v.errorMessage}</p>
+						</div>
+					</div>
+				</aura:if>
+
+				<aura:iteration items="{!v.fieldsStatic}" var="k" indexVar="idx">
+					<div class = "slds-section slds-is-open">
+						<h3 class="slds-section__title slds-theme_shade">
+							<span class="slds-truncate slds-p-horizontal_small" title="{!k.sectionName}">{!k.sectionName}</span>
+						</h3>
+						<div aria-hidden="false" class="slds-section__content">
+							<lightning:layout multipleRows="true">
+								<aura:iteration items="{!k.fieldList}" var="f">
+									<aura:if isTrue="{!f.dynamic}">
+										<lightning:layoutItem size="6"> 
+										<div class="slds-m-verical_small slds-m-horizontal_x-small">
+											<lightning:select name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" onchange="{!c.doSelectChange}" aura:id="dynamicField" disabled="{!f.disabled}" required="{!f.required}">
+												<option value="">choose one...</option>
+     	                                   <aura:if isTrue="{!empty(f.picklistLabelValues)}">
+     	                                       <aura:iteration items="{!f.picklistValues}" var="opt">
+     	                                           <option value="{!opt}">{!opt}</option>
+     	                                       </aura:iteration>
+      	                                      <aura:set attribute="else">
+       	                                         <aura:iteration items="{!f.picklistLabelValues}" var="opt">
+       	                                             <option value="{!opt.value}">{!opt.label}</option>
+       	                                         </aura:iteration>                                                
+      	                                      </aura:set>
+                                       </aura:if>  
+											</lightning:select>
+										</div>
+										</lightning:layoutItem>
+
+										<aura:set attribute="else">
+											<lightning:layoutItem size="6">
+											<div class="slds-m-verical_small slds-m-horizontal_x-small">
+												<aura:if isTrue="{!f.type == 'DOUBLE'}">
+													<lightning:input aura:id="staticField" type="number" name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" disabled="{!f.disabled}" required="{!f.required}"/>
+												</aura:if>   
+												<aura:if isTrue="{!f.type == 'CURRENCY'}">
+													<lightning:input aura:id="staticField" type="number" step="0.01" formatter="currency" name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" disabled="{!f.disabled}" required="{!f.required}"/>
+												</aura:if> 
+												<aura:if isTrue="{!f.type == 'STRING'}">
+													<lightning:input aura:id="staticField" name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" disabled="{!f.disabled}" required="{!f.required}" fieldLevelHelp="{!f.inlineHelp}"/>
+												</aura:if>
+												<aura:if isTrue="{!f.type == 'BOOLEAN'}">
+													<lightning:input aura:id="staticField" type="checkbox" name="{!f.fieldPath}" label="{!f.label}" disabled="{!f.disabled}" required="{!f.required}" fieldLevelHelp="{!f.inlineHelp}"/>
+												</aura:if>
+												<aura:if isTrue="{!f.type == 'DATE'}">
+													<lightning:input aura:id="staticField" type="{!f.type}" name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" disabled="{!f.disabled}" required="{!f.required}" fieldLevelHelp="{!f.inlineHelp}"/>
+												</aura:if>
+												<aura:if isTrue="{!f.type == 'TEXTAREA'}">
+													<lightning:textarea aura:id="staticField" name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" disabled="{!f.disabled}" required="{!f.required}" fieldLevelHelp="{!f.inlineHelp}"/>
+												</aura:if>
+												<aura:if isTrue="{!f.type == 'PICKLIST'}">
+													<aura:if isTrue="{!f.otherDependent}">
+														<lightning:select name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" aura:id="otherDependent" disabled="{!f.disabled}" required="{!f.required}">
+															<option value="">choose one...</option>
+															<aura:iteration items="{!f.picklistValues}" var="opt">
+																<option value="{!opt}">{!opt}</option>
+															</aura:iteration>
+														</lightning:select>
+														<aura:set attribute="else">
+															<lightning:select aura:id="staticField" name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" disabled="{!f.disabled}" required="{!f.required}">
+																<option value="">choose one...</option>
+																<aura:iteration items="{!f.picklistValues}" var="opt">
+																	<option value="{!opt}">{!opt}</option>
+																</aura:iteration>
+															</lightning:select>
+														</aura:set>
+													</aura:if>
+												</aura:if>
+												<aura:if isTrue="{!f.type == 'MULTIPICKLIST'}">
+													<lightning:dualListBox aura:id="staticField" name="{!f.fieldPath}" value="{!f.value}" label="{!f.label}" disabled="{!f.disabled}" options="{!f.multiPicklistValues}" required="{!f.required}" fieldLevelHelp="{!f.inlineHelp}"/>
+												</aura:if>
+												<aura:if isTrue="{!f.type == 'REFERENCE'}">
+													<c:strike_lookup aura:id="staticField" iconName ="{!f.iconName}" label="{!f.label}" subtitleField="{!f.subtitle}" object="{!f.referenceTo}" searchField="Name" disabled="{!f.disabled}" order="Name" value="{!f.value}" required="{!f.required}" filter="{!f.filter}" errorMessage="Test me now"/>
+												</aura:if>
+											</div>
+											</lightning:layoutItem>
+										</aura:set>
+									</aura:if>
+									<div></div>
+								</aura:iteration>
+							</lightning:layout>
+						</div>
+					</div>
+
+					<aura:if isTrue="{!v.dynamicAfter == idx}">
+						<aura:if isTrue="{!v.showDynamic}">
+							<aura:iteration items="{!v.fieldsDynamic}" var="k2">
+								<div class = "slds-section slds-is-open">
+									<lightning:input aura:id="sectionField" name="{!k2.sectionName}" value="{!k2.sectionName}" class="slds-hide" />
+									<h3 class="slds-section__title slds-theme_shade">
+										<span class="slds-truncate slds-p-horizontal_small" title="{!k2.sectionName}">{!k2.sectionName}</span>
+									</h3>
+									<div aria-hidden="false" class="slds-section__content">
+										<lightning:layout multipleRows="true">
+											<aura:iteration items="{!k2.fieldList}" var="f2">
+												<lightning:layoutItem size="6">
+												<div class="slds-m-verical_small slds-m-horizontal_x-small">
+													<aura:if isTrue="{!f2.type == 'DOUBLE'}">
+														<lightning:input aura:id="formField" type="number" name="{!f2.fieldPath}" value="{!f2.value}" label="{!f2.label}" disabled="{!f2.disabled}" required="{!f2.required}" fieldLevelHelp="{!f2.inlineHelp}"/>
+													</aura:if> 
+													<aura:if isTrue="{!f2.type == 'CURRENCY'}">
+														<lightning:input aura:id="formField" type="number" formatter="currency" step="0.01" name="{!f2.fieldPath}" value="{!f2.value}" label="{!f2.label}" disabled="{!f2.disabled}" required="{!f2.required}" fieldLevelHelp="{!f2.inlineHelp}"/>
+													</aura:if>  
+													<aura:if isTrue="{!f2.type == 'STRING'}">
+														<lightning:input aura:id="formField" name="{!f2.fieldPath}" value="{!f2.value}" label="{!f2.label}" disabled="{!f2.disabled}" required="{!f2.required}"/>
+													</aura:if>
+													<aura:if isTrue="{!f2.type == 'BOOLEAN'}">
+														<lightning:input aura:id="formField" type="checkbox" name="{!f2.fieldPath}" label="{!f2.label}" disabled="{!f2.disabled}" required="{!f2.required}"/>
+													</aura:if>
+													<aura:if isTrue="{!f2.type == 'DATE'}">
+														<lightning:input aura:id="formField" type="{!f2.type}" name="{!f2.fieldPath}" value="{!f2.value}" label="{!f2.label}" disabled="{!f2.disabled}" required="{!f2.required}"/>
+													</aura:if>
+													<aura:if isTrue="{!f2.type == 'TEXTAREA'}">
+														<lightning:textarea aura:id="formField" name="{!f2.fieldPath}" value="{!f2.value}" label="{!f2.label}" disabled="{!f2.disabled}" required="{!f2.required}"/>
+													</aura:if>
+													<aura:if isTrue="{!f2.type == 'PICKLIST'}">
+														<aura:if isTrue="{!f2.otherDependent}">
+															<lightning:select name="{!f2.fieldPath}" value="{!f2.value}" label="{!f2.label}" aura:id="otherDependent" disabled="{!f2.disabled}" required="{!f2.required}">
+																<option value="">choose one...</option>
+																<aura:iteration items="{!f2.picklistValues}" var="opt">
+																	<option value="{!opt}">{!opt}</option>
+																</aura:iteration>
+															</lightning:select>
+															<aura:set attribute="else">
+																<lightning:select aura:id="formField" name="{!f2.fieldPath}" value="{!f2.value}" label="{!f2.label}" disabled="{!f2.disabled}" required="{!f2.required}">
+																	<option value="">choose one...</option>
+																	<aura:iteration items="{!f2.picklistValues}" var="opt">
+																		<option value="{!opt}">{!opt}</option>
+																	</aura:iteration>
+																</lightning:select>
+															</aura:set>
+														</aura:if>
+													</aura:if>
+													<aura:if isTrue="{!f2.type == 'MULTIPICKLIST'}">
+														<lightning:dualListBox aura:id="formField" name="{!f2.fieldPath}" value="{!f2.value}" label="{!f2.label}" disabled="{!f2.disabled}" options="{!f2.multiPicklistValues}" required="{!f2.required}"/>
+													</aura:if>
+													<aura:if isTrue="{!f2.type == 'REFERENCE'}">
+														<c:strike_lookup aura:id="formField" iconName ="{!f2.iconName}" label="{!f2.label}" subtitleField="{!f.subtitle}" object="{!f2.referenceTo}" searchField="Name" disabled="{!f2.disabled}" order="Name" value="{!f2.value}" required="{!f2.required}" filter="{!f2.filter}" errorMessage="Test me now"/>
+													</aura:if>
+												</div>
+												</lightning:layoutItem>
+											</aura:iteration>
+										</lightning:layout>
+									</div>
+								</div>
+							</aura:iteration>
+							<div></div>
+						</aura:if>
+					</aura:if>
+				</aura:iteration>
+				
+				<div class = "slds-section slds-is-open">
+					<h3 class="slds-section__title slds-theme_shade">
+						<span class="slds-truncate slds-p-horizontal_small" title="Files">Files</span>
+					</h3>
+					<div aria-hidden="false" class="slds-section__content">
+						<lightning:layout multipleRows="true">
+							<!-- LIST FILES UPLOADED -->   
+							<aura:if isTrue="{!not(empty(v.files))}">
+							<div class="slds-form--compound" style="position:relative">
+								<table class="slds-table slds-table--bordered">  
+									<thead>  
+										<tr>  
+											<th></th>
+											<th>Title</th>
+											<th>FileType</th>                   
+										</tr>  
+									</thead>  
+									<tbody>
+										<aura:iteration items="{!v.files}" var="f">  
+											<tr>  
+											<td><a href="javascript:void(0)" id="{!f.Id}" onclick="{!c.removeFile}">Delete</a></td>
+											<td>{!f.Title}</td>  
+											<!-- <td><a href="" id="{!f.Id}" onclick="{!c.previewFile}">{!f.Title}</a></td> --> 
+											<td>{!f.FileType}</td>                        
+											</tr>  
+										</aura:iteration>  
+									</tbody>  
+								</table>
+							</div>
+							</aura:if>
+
+							<br/>
+							<lightning:layoutItem padding="around-small" size="6"> 
+								<lightning:fileUpload
+									label="Attach Files" 
+									name="fileUploader"
+									disabled="false"  
+									multiple="true" 
+									recordId="{!v.fileHolderId}" 
+									onuploadfinished="{!c.attachedFiles}"/>
+							</lightning:layoutItem>
+						</lightning:layout>
+					</div>
+				</div>
+				<br/>
+
+				<lightning:button class="slds-m-bottom_xx-large" variant="brand" label="Save" title="Save" onclick="{!c.saveRecord}"/>
+			</aura:set>
+		</aura:if>
+	</div>
+	<br/>
+</aura:component>

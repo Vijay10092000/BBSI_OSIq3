@@ -1,0 +1,5 @@
+<design:component>
+    <design:attribute name="recordTypeDevName" label="RecordType Developer Name" 
+                      required="true" description="RecordType Developer Name for new Case Record"
+                      datasource="apex://FieldSetComponentController"/>
+</design:component>

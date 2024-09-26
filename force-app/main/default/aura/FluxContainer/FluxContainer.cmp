@@ -1,0 +1,13 @@
+<!--
+	Flux Container code from an article on Medium.com by Jeffery Shivers
+	https://medium.com/@jefferyshivers/flux-and-lightning-components-5ce975027bef
+ -->
+
+<aura:component extensible="true">
+	<aura:registerEvent name="getState"
+						type="c:FluxContainer_getState" />
+	<aura:handler name="setState"
+				  event="c:FluxContainer_setState"
+				  action="{! c.setState }" />
+	{!v.body}
+</aura:component>

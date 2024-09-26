@@ -1,0 +1,8 @@
+<aura:component implements="lightning:utilityItem,force:appHostable,flexipage:availableForAllPageTypes">
+	<lightning:navigation aura:id="navService"/>
+	<lightning:utilityBarAPI aura:id="utilityBar"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+    <aura:attribute name="supportsPopOut" type="Boolean" default="false" />
+</aura:component>

@@ -1,0 +1,6 @@
+<aura:documentation>
+	<aura:description>Documentation</aura:description>
+	<aura:example name="ApexInformation" ref="ApexInformation" label="Label">
+		Used to display code coverage information about Apex classes and triggers.
+	</aura:example>
+</aura:documentation>

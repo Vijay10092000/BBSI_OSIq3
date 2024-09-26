@@ -1,0 +1,63 @@
+<aura:component
+	access="global"
+	controller="DupeCatcherController"
+	implements="flexipage:availableForAllPageTypes,force:appHostable,force:hasRecordId"
+	description="Displays potential duplicate Accounts and Leads"
+>
+	<aura:handler event="force:refreshView" action="{!c.onRefresh}" />
+	<aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+	<aura:attribute name="isLoading" type="Boolean" default="false" />
+
+	<aura:attribute name="title" type="String" default="Possible Duplicates"/>
+	<aura:attribute name="duplicates" type="possibleMatches[]" />
+	<aura:attribute name="showTable" type="Boolean" default="false" />
+
+	<lightning:card variant="Narrow" title="{!v.title}" iconName="standard:orders">
+		<aura:if isTrue="{!v.isLoading}">
+			<lightning:spinner alternativeText="Loading..." />
+		</aura:if>
+
+		<aura:if isTrue="{!v.showTable}">
+			<!-- <div class="c-container"> -->
+				<div style="height:150px;overflow:auto;">
+					<table class="slds-table slds-table--bordered slds-table--fixed-layout slds-box" role="grid">
+						<thead>
+							<tr class="slds-line-height_reset">
+								<th scope="col" class="slds-text-title_caps">
+									<span class="slds-truncate" title="Owner">Owner</span>
+								</th>
+								<th scope="col" class="slds-text-title_caps">
+									<span class="slds-truncate" title="Branch">Branch</span>
+								</th>
+								<th scope="col" class="slds-text-title_caps">
+									<span class="slds-truncate" title="Name">Name</span>
+								</th>
+								<th scope="col" class="slds-text-title_caps">
+									<span class="slds-truncate" title="Company">Company</span>
+								</th>
+								<th scope="col" class="slds-text-title_caps">
+									<span class="slds-truncate" title="Created">Created</span>
+								</th>
+								<th scope="col" class="slds-text-title_caps">
+									<span class="slds-truncate" title="RecordType">Type</span>
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<aura:iteration items="{!v.duplicates}" var="dup">
+								<tr>
+									<td><div class="slds-truncate">{!dup.OwnerName}</div></td>
+									<td><div class="slds-truncate" ><a href="{!'/' + dup.BranchId}" target="_blank}">{!dup.BranchName}</a></div></td>
+									<td><div class="{!dup.NameMatch ? 'HIGHLIGHTCELL' : '' + slds-truncate}" ><a href="{!'/' + dup.recordID}" target="_blank}">{!dup.Name}</a></div></td>
+									<td><div class="{!dup.CompanyMatch ? 'HIGHLIGHTCELL' : '' + ' slds-truncate'}" ><a href="{!'/' + dup.CompanyId}" target="_blank}">{!dup.Company}</a></div></td>
+									<td><div class="slds-truncate" ><ui:outputDate value="{!dup.createdDate}" /></div></td>
+									<td><div class="slds-truncate" >{!dup.recordType}</div></td>
+								</tr>
+							</aura:iteration>
+						</tbody>
+					</table>
+				<!-- </div> -->
+			</div>
+		</aura:if>
+	</lightning:card>
+</aura:component>

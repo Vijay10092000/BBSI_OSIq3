@@ -1,0 +1,19 @@
+.THIS .slds-post__footer { 
+    display: none !important;
+}
+
+.THIS .cuf-media-right {
+    display: none !important;
+}
+
+.THIS .comment__footer {
+    display: none !important;
+}
+
+.THIS .slds-feed__item {
+    padding: 0;
+}
+
+.THIS .commentInputArea {
+    display: none !important;
+}

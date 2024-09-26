@@ -1,0 +1,196 @@
+<aura:component
+	access="global"
+	controller="BusinessActivityReportController"
+	implements="flexipage:availableForAllPageTypes"
+	description="Create Business Activity Report"
+>
+	<aura:attribute name="isSpinning" type="Boolean" default="false" />
+	<aura:attribute name="isModalOpen" type="Boolean" default="false"/>
+
+	<aura:attribute name="header" type="String" default="" />
+
+	<aura:attribute name="userName" type="String"/>
+	<aura:attribute name="userId" type="String"/>
+	<aura:attribute name="allowSelection" type="Boolean" default="false"/>
+	<aura:attribute name="isBDM" type="Boolean" default="false"/>
+
+	<aura:attribute name="selectedAdvYear" type="String"/>
+	<aura:attribute name="selectedAdvQuarter" type="String"/>
+
+    <aura:attribute name="optionYears" type="List" default="[]"/>
+    <aura:attribute name="optionQuarters" type="List" default="[]"/>
+	<aura:attribute name="optionBranches" type="List" default="[]"/>
+	<aura:attribute name="optionBDMs" type="List" default="[]"/>
+
+	<aura:attribute name="optionAdvBranches" type="List" default="[]"/>
+    <aura:attribute name="selectedAdvBranches" type="List" default="[]"/>
+	<aura:attribute name="optionAdvBDMs" type="List" default="[]"/>
+    <aura:attribute name="selectedAdvBDMs" type="List" default="[]"/>
+
+    <aura:attribute name="sssBranches" type="List" default="[]"/>
+    <aura:attribute name="sssBDMs" type="List" default="[]"/>
+
+    <aura:attribute name="allBranches" type="List" default="[]"/>
+    <aura:attribute name="allBDMs" type="List" default="[]"/>
+
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+    <lightning:overlayLibrary aura:id="modalBusinessActivityReport"/>
+
+	<lightning:card title="Business Activity Report">
+		<aura:if isTrue="{! v.isSpinning }">
+			<lightning:spinner alternativeText="Loading..."/>
+		</aura:if>
+
+		<aura:if isTrue="{! or(v.isBDM, v.allowSelection) }">
+			<div class="slds-var-m-left_medium slds-text-color_error">
+				<aura:unescapedHtml value="{! v.header }" />
+			</div>
+
+			<div class="slds-var-p-around_x-small slds-var-m-left_medium slds-var-m-right_medium slds-border_top slds-border_bottom slds-border_left slds-border_right">
+				<div class="row">
+					<aura:if isTrue="{! v.allowSelection }">
+						<div class="columnLeft">
+							<lightning:select aura:id="pickBDM" name="pickBDM" label="BDM" required="false">
+								<option text="Pick BDM..." value="" />
+								<aura:iteration items="{! v.optionBDMs }" var="bdm">
+									<option text="{! bdm.label }" value="{! bdm.value }"/>
+								</aura:iteration>
+							</lightning:select>
+						</div>
+
+						<aura:set attribute="else">
+							<div class="columnLeftMiddle">
+								<div> <label class="slds-form-element__label" for="unique-id-of-input">BDM</label> </div>
+								<div> <label class="slds-form-element__label" for="unique-id-of-input"><b>{! v.userName}</b></label> </div>
+							</div>
+						</aura:set>
+					</aura:if>
+
+					<div class="columnCenter">
+						<lightning:select aura:id="pickYear" name="pickYear" label="Year">
+							<aura:iteration items="{! v.optionYears }" var="year">
+								<option text="{! year.label }" value="{! year.value }" selected="{!year.selected}"/>
+							</aura:iteration>
+						</lightning:select>
+					</div>
+
+					<div class="columnRight">
+						<lightning:select aura:id="pickQuarter" name="pickQuarter" label="Quarter">
+							<aura:iteration items="{! v.optionQuarters }" var="quarter">
+								<option text="{! quarter.label }" value="{! quarter.value }" selected="{!quarter.selected}"/>
+							</aura:iteration>
+						</lightning:select>
+					</div>
+				</div>
+
+				<div class="slds-align_absolute-center">
+					<div class="slds-var-m-top_small">
+						<lightning:button
+							label="Create Report"
+							onclick="{! c.createReport }"
+						>
+						</lightning:button>
+
+						<lightning:button
+							label="Advanced"
+							onclick="{! c.openDialog }"
+						>
+						</lightning:button>
+					</div>
+				</div>
+			</div>
+
+			<aura:set attribute="else">
+				<div class="slds-align_absolute-center">
+					Available only for Business Development Managers
+				</div>
+			</aura:set>
+		</aura:if>
+	</lightning:card>
+
+	<aura:if isTrue="{!v.isModalOpen}">
+		<section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+			<div class="slds-modal__container">
+				<header class="slds-modal__header">
+					<lightning:buttonIcon iconName="utility:close"
+											onclick="{! c.closeDialog }"
+											alternativeText="close"
+											variant="bare-inverse"
+											class="slds-modal__close" />
+					<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Business Activity Report</h2>
+				</header>
+
+				<div class="slds-modal__content slds-var-p-around_medium" id="modal-content-id-1">
+					<aura:if isTrue="{! not(v.allowSelection) }">
+						<p><b>Creating report for {! v.userName }</b></p>
+					</aura:if>
+
+					<div class="row">
+						<div class="columnLeft">
+							<lightning:select aura:id="advpickYear" name="advpickYear" label="Year" value="{!v.selectedAdvYear}">
+								<aura:iteration items="{! v.optionYears }" var="item">
+									<option text="{! item.label }" value="{! item.value }"/>
+								</aura:iteration>
+							</lightning:select>
+						</div>
+
+						<div class="columnRight">
+							<lightning:select aura:id="advpickQuarter" name="advpickQuarter" label="Quarter" value="{!v.selectedAdvQuarter}">
+								<aura:iteration items="{! v.optionQuarters }" var="item">
+									<option text="{! item.label }" value="{! item.value }"/>
+								</aura:iteration>
+							</lightning:select>
+						</div>
+					</div>
+
+					<br/>
+					<aura:if isTrue="{! v.allowSelection }">
+						<div>
+						<lightning:dualListbox
+							aura:id="selectBDMs"
+							name="Select BDMs"
+							label= "Select BDMs"
+							sourceLabel="Available BDMs"
+							selectedLabel="Selected BDMs"
+							options="{! v.optionAdvBDMs }"
+							value="{! v.selectedAdvBDMs }"
+							required="true"
+							min="1"
+							onchange="{! c.handleChangeBDMs }" />
+						</div>
+
+						<br/>
+					</aura:if>
+
+					<div>
+						<lightning:dualListbox
+							aura:id="selectBranches"
+							name="Select Branches"
+							label= "Select Branches"
+							sourceLabel="Available Branches"
+							selectedLabel="Selected Branches"
+							options="{! v.optionAdvBranches }"
+							value="{! v.selectedAdvBranches }"
+							required="true"
+							min="1"
+							onchange="{! c.handleChangeBranches }" />
+					</div>
+				</div>
+
+				<footer class="slds-modal__footer">
+					<lightning:button variant="neutral"
+						label="Cancel"
+						title="Cancel"
+						onclick="{! c.closeDialog }" />
+					<lightning:button variant="brand"
+						label="Create Report"
+						title="Create Report"
+						onclick="{!c.createAdvancedReport}" />
+				</footer>
+			</div>
+		</section>
+
+		<div class="slds-backdrop slds-backdrop_open"></div>
+	</aura:if>
+</aura:component>

@@ -1,0 +1,28 @@
+.THIS .label-hidden > label {
+    display: none;
+}
+
+.THIS .row {
+    display: flex;
+}
+
+.THIS .columnLeft {
+    flex: 50%;
+    margin-right : 4px;
+}
+
+.THIS .columnLeftMiddle {
+    flex: 50%;
+    margin-right : 4px;
+}
+
+.THIS .columnCenter {
+    flex: 25%;
+    margin-left : 4px;
+    margin-right : 4px;
+}
+
+.THIS .columnRight {
+    flex: 25%;
+    margin-right : 4px;
+}

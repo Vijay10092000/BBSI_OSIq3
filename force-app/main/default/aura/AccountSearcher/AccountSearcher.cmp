@@ -1,0 +1,81 @@
+<aura:component
+	access="global"
+	controller="AccountSearcherController"
+	implements="flexipage:availableForAllPageTypes"
+	description="Allow search for all Accounts, not just owned"
+>
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+	<aura:attribute name="countAccounts" type="Integer" />
+	<aura:attribute name="allowTypeSelection" type="Boolean" default="false" />
+
+	<aura:attribute name="isLoading" type="Boolean" default="false" />
+	<aura:attribute name="columns" type="List" />
+	<aura:attribute name="listAccounts" type="sObject" />
+	<aura:attribute name="isSpinning" type="Boolean" default="false" />
+	<aura:attribute name="searchText" type="String" />
+	<aura:attribute name="header" type="String" default="&nbsp;Search for Account by Name, DBA and Client Id" />
+	<aura:attribute name="footer" type="String" default=""/>
+
+	<lightning:card title="Global Client Search">		
+		<aura:if isTrue="{!v.isLoading}">
+			<lightning:spinner alternativeText="Loading..."/>
+		</aura:if>
+		
+		<div class="slds-grid" style="margin: 10px">
+			<aura:unescapedHtml value="{!v.header}" />
+		</div>
+
+		<div class="slds-grid slds-grid_vertical-align-center" style="margin: 10px" >
+			<div class="slds-col slds-size_5-of-12">
+				<span onkeypress="{!c.checkIfEnter}" >
+					<lightning:input
+						aura:id="searchText"
+						type="text"
+						value="{!v.searchText}"
+						variant="label-hidden"
+					/>
+				</span>
+			</div>
+			<div class="slds-col slds-size_2-of-12">
+				<lightning:button
+					label="Search"
+					onclick="{! c.search }"
+					iconName="utility:search"
+				>
+				</lightning:button>
+			</div>	
+			<div class="slds-col slds-size_1-of-12" />
+			<div class="slds-col slds-size_4-of-12">	
+				<aura:if isTrue="{!v.allowTypeSelection}">
+					<lightning:select name="accountType" class="label-hidden" value="ProspectsClientsTerminated">
+						<option value="AllTypes">All Account types</option>
+						<option value="ProspectsClientsTerminated">Prospects, Clients and Terminated</option>
+						<option value="ProspectsClients">Prospects and Clients</option>
+						<option value="Prospects">Prospects</option>
+						<option value="Clients">Clients</option>
+					</lightning:select>
+				</aura:if>
+			</div>
+		</div>
+
+		<div style="height: 170px; margin: 10px; border: 1px solid #c6c6c6">
+			<lightning:datatable
+				aura:id="accounts"
+				keyField="Id"
+				columns="{!v.columns}"
+				data="{!v.listAccounts}"
+				hideCheckboxColumn="true"
+			/>
+		</div>
+		
+		<aura:set attribute="footer">
+			<div
+				class="slds-text-title slds-var-p-bottom_small"
+				style="text-align: center"
+			>
+				<aura:unescapedHtml value="{!v.footer}" />
+			</div>
+		</aura:set>
+	</lightning:card>
+</aura:component>

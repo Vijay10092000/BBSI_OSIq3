@@ -1,0 +1,98 @@
+<!-- Created by CElim on 4/26/2019. -->
+
+<aura:component controller="PrcMarkupController" implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+
+    <!-- Pricing Attributes -->
+    <aura:handler event="c:FluxContainer_getState" action="{!c.onAppEvent}"/>
+    <aura:registerEvent name="setState" type="c:FluxContainer_setState"/>
+    <aura:attribute name="containerName" type="String" default="alternateMarkup"/>
+
+    <!-- Common Attributes -->
+    <aura:attribute name="data" type="sObject"/>
+    <aura:attribute name="columns" type="List" />
+    <aura:attribute name="clientPricScenId" type="String"/>
+    <aura:attribute name="sObjectType" type="String" required="true" default="PricingWcCode__c" access="public" />
+    <aura:attribute name="isLoading" type="Boolean" default="false"/>
+	<aura:attribute name="isProspect" type="Boolean" default="false"/>
+
+    <!-- Footer Attributes -->
+    <aura:attribute name="netMargin" type="Decimal" default="0"/>
+    <aura:attribute name="totalPayroll" type="Decimal" default="0"/>
+    <aura:attribute name="totalPremiumBasedPayroll" type="Decimal" default="0"/>
+    <aura:attribute name="totalWcPremium" type="Decimal" default="0"/>
+    <aura:attribute name="totalSiMax" type="Decimal" default="0"/>
+
+    <!-- Common Handlers -->
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+    <!-- Common Libraries -->
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+    <aura:if isTrue="{!v.isLoading}"><lightning:spinner /></aura:if>
+
+
+    <div class="slds-text-heading_small slds-p-bottom--small">
+        BLENDED MARKUP
+    </div>
+    <div style="height: auto;">
+        <lightning:datatable aura:id="blendedMarkupTable"
+                             keyField="Id"
+                             data="{!v.data}"
+                             columns="{!v.columns}"
+                             hideCheckboxColumn="true"/>
+    </div>
+    <!-- BLENDED MARKUP TABLE FOOTER -->
+    <div class="slds-grid slds-grid_align-center slds-p-top--small" id="blendedMarkupFooter">
+        <div class="slds-align-top slds-col slds-size--1-of-1 slds-p-bottom--small" >
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-no-row-hover">
+                <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="slds-text-title_caps" scope="col">
+                        <div class="slds-truncate" align="center" title="Net Margin">Net Margin</div>
+                    </th>
+                    <th class="slds-text-title_caps" scope="col">
+                        <div class="slds-truncate" align="center" title="Total Payroll in Code">Payroll In Code</div>
+                    </th>
+                    <th class="slds-text-title_caps" scope="col">
+                        <div class="slds-truncate" align="center" title="Total Premium Based Payroll">Premium Based Payroll</div>
+                    </th>
+                    <th class="slds-text-title_caps" scope="col">
+                        <div class="slds-truncate" align="center" title="Total WC Premium">WC Premium</div>
+                    </th>
+                    <th class="slds-text-title_caps" scope="col">
+                        <div class="slds-truncate" align="center" title="Total Premium Max Safety Incentive">Premium Max Safety Incentive</div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="slds-hint-parent">
+                    <td>
+                        <div class="slds-truncate" align="center">
+                            <ui:outputCurrency value="{!v.netMargin}"/>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="slds-truncate" align="center">
+                            <ui:outputCurrency value="{!v.totalPayroll}"/>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="slds-truncate" align="center">
+                            <ui:outputCurrency value="{!v.totalPremiumBasedPayroll}"/>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="slds-truncate" align="center">
+                            <ui:outputCurrency value="{!v.totalWcPremium}"/>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="slds-truncate" align="center">
+                            <ui:outputCurrency value="{!v.totalSiMax}"/>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</aura:component>

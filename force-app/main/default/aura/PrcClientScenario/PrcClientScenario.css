@@ -1,0 +1,24 @@
+/*
+ * Copyright (c) 2018. Barrett Business Services, Inc. All Rights Reserved
+ */
+.THIS .slds-button_icon-bare{
+    display: none;
+}
+.THIS .slds-th__action {
+    justify-content: center !important;
+}
+/* //Aligning table content (td) alignment to center
+.THIS .slds-grid_align-end {
+    justify-content: center;
+}
+*/
+/*
+.THIS .slds-grid{
+    background-color: #d2d290;
+}
+*/
+/*
+.THIS {
+    background-color: #d2d290;
+}
+*/

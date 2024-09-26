@@ -1,0 +1,141 @@
+<!--
+ - Copyright (c) 2018. Barrett Business Services, Inc. All Rights Reserved
+ - Created by agoganian on 10/15/2018.
+ -->
+<aura:component controller="PrcTaxRatesController" implements="flexipage:availableForAllPageTypes" access="global">
+
+	<!-- Attributes -->
+	<aura:attribute name="isShowingAddform" type="Boolean" default="false"/>
+	<aura:attribute name="newTaxItem" type="ERPayrollTax__c"/>
+	<aura:attribute name="stateCodes" type="Object[]"/>
+	<aura:attribute name="taxTypes" type="Object[]"/>
+
+	<!-- Pricing Attributes -->
+	<aura:handler event="c:FluxContainer_getState" action="{!c.onAppEvent}"/>
+	<aura:registerEvent name="setState" type="c:FluxContainer_setState"/>
+	<aura:attribute name="containerName" type="String" default="taxRates"/>
+
+	<!-- Footer Attributes -->
+	<aura:attribute name="taxBurdenPercent" type="Decimal" default="0"/>
+	<aura:attribute name="taxBurdenPercentNoOwner" type="Decimal" default="0"/>
+
+	<!-- Public Methods -->
+
+	<!-- Common Attributes -->
+	<aura:attribute name="clientId" type="String"/>
+	<aura:attribute name="data" type="sObject"/>
+	<aura:attribute name="clientPricScenId" type="String"/>
+	<aura:attribute name="sObjectType" type="String" required="true" default="ERPayrollTax__c" access="public" />
+	<aura:attribute name="maxRows" type="Integer" default="20" />
+	<aura:attribute name="records" type="Object[]" />
+	<aura:attribute name="columns" type="List" />
+
+	<aura:attribute name="fedData" type="sObject"/>
+	<aura:attribute name="fedColumns" type="List" />
+	<aura:attribute name="stateAndOthersColumns" type="List" />
+	<aura:attribute name="stateAndOthersData" type="sObject"/>
+
+	<aura:attribute name="isLoading" type="Boolean" default="false"/>
+	<aura:attribute name="nonProfit" type="Boolean" default="false"/>
+
+	<!-- Common Handlers -->
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+	<!-- Common Libraries -->
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+
+	<div class="slds-text-heading_small slds-p-bottom_small">
+		FEDERAL TAX RATES
+		<div class="slds-float_right">
+			<ui:inputCheckbox class="checkboxClass" value="{!v.nonProfit}" change="{!c.handleNonProfit}" label=" Non-Profit"/>
+		</div>
+	</div>
+	<div style="height:auto" class="slds-p-bottom_large">
+		<lightning:datatable aura:id="fedTaxesTable"
+							 keyField="Id"
+							 data="{! v.fedData }"
+							 columns="{! v.fedColumns }"
+							 onsave="{!c.handleFedSaveTable}"
+							 hideCheckboxColumn="true"/>
+	</div>
+	<div class="slds-text-heading_small slds-p-bottom--small">STATE AND LOCAL TAX RATES</div>
+	<div style="height:auto">
+		<lightning:datatable aura:id="otherTaxesTable"
+							 keyField="Id"
+							 data="{!v.stateAndOthersData }"
+							 columns="{!v.stateAndOthersColumns }"
+							 onsave="{!c.handleSaveTable}"
+							 onrowaction="{!c.handleRowAction}"
+							 hideCheckboxColumn="true"/>
+	</div>
+
+	<!-- CREATE NEW EMPLOYEE -->
+	<aura:renderif isTrue="{! !v.isShowingAddform }">
+		<div class="slds-m-top_small">
+			<lightning:button
+					label="Add"
+					variant="brand"
+					onclick="{!c.onOpenAddform}"/>
+		</div>
+	</aura:renderif>
+
+	<aura:renderif isTrue="{! v.isShowingAddform }">
+		<div aria-labelledby="newTaxForm" >
+			<fieldset class="slds-box slds-theme--default slds-container--small">
+				<legend id="newTaxForm" class="slds-text-heading--small slds-p-vertical--medium">
+				</legend>
+				<!-- CREATE NEW TAX FORM -->
+				<form class="slds-form--stacked" >
+					<lightning:select aura:id="taxform" label="Select State Code (required)" messageWhenValueMissing="Please select a State Code"
+									  name="taxStateCode" value="{!v.newTaxItem.State_Code__c}" required="true">
+						<option value="">Select a State</option>
+						<aura:iteration items="{!v.stateCodes}" var="stateOption">
+							<option text="{!stateOption.label}" value="{!stateOption.stateCode}" selected="{!stateOption.selected}"/>
+						</aura:iteration>
+						<option value="{!v.stateCodes}"></option>
+					</lightning:select>
+					<lightning:select aura:id="taxform" label="Select Tax Type (required)" messageWhenValueMissing="Please select a Tax type"
+									  name="taxType" value="{!v.newTaxItem.Tax_Type__c}" required="true">
+						<option value="">Select Tax Type</option>
+						<aura:iteration items="{!v.taxTypes}" var="typeOption">
+							<option text="{!typeOption.type}" value="{!typeOption.type}" selected="{!typeOption.selected}"/>
+						</aura:iteration>
+						<option value="{!v.taxTypes}"></option>
+					</lightning:select>
+					<lightning:input aura:id="taxform" type="number" label="Tax Rate" name="taxRate" step="0.001" value="{!v.newTaxItem.Rate__c}"/>
+					<lightning:input aura:id="taxform" type="number" label="Limit" name="limit" value="{!v.newTaxItem.Limit__c}"/>
+					<lightning:button label="Submit" class="slds-m-top--medium" variant="brand" onclick="{!c.onCreateTax}"/>
+					<lightning:button label="Cancel" class="slds-m-top--medium" variant="brand" onclick="{!c.onCancelTax}"/>
+				</form>
+			</fieldset>
+		</div>
+	</aura:renderif>
+
+	<!--  TABLE FOOTER -->
+	<div class="slds-grid slds-grid_align-center  slds-p-top--small" id="taxesFooter">
+		<div class="slds-align-top slds-col slds-size--1-of-1 " >
+			<table class="slds-table slds-table_cell-buffer slds-table_bordered slds-no-row-hover">
+				<thead>
+				<tr class="slds-line-height_reset">
+					<th class="slds-text-title_caps" scope="col">
+						<div class="slds-truncate" align="center" title="Tax Burden %">Tax Burden %</div>
+					</th>
+					<th class="slds-text-title_caps" scope="col">
+						<div class="slds-truncate" align="center" title="Tax Burden % w/o Owner">Tax Burden % w/o Owner</div>
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr class="slds-hint-parent">
+					<td>
+						<div class="slds-truncate" align="center" title="Tax Burden %"><ui:outputNumber format="##0.00" value="{!v.taxBurdenPercent}"/></div>
+					</td>
+					<td>
+						<div class="slds-truncate" align="center" title="Tax Burden % w/o Owner"><ui:outputNumber format="##0.00" value="{!v.taxBurdenPercentNoOwner}"/></div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</aura:component>

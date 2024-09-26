@@ -1,0 +1,37 @@
+<aura:component
+	access="global"
+	controller="BenefitsAffiliatesAccount_Controller"
+	implements="force:hasRecordId,force:lightningQuickActionWithoutHeader,lightning:actionOverride"
+	description="Allow selection of Accounts in a Benefits Affiliates."
+>
+	<aura:handler name="init" action="{!c.onInit}" value="{!this}" description="Load initial data"/>
+
+	<aura:attribute name="pickable" type="List" default="[]" description="Accounts to select from"/>
+	<aura:attribute name="selected" type="List" default="[]" description="Selected Accounts"/>
+	<aura:attribute name="required" type="List" default="[]" description="Required Accounts"/>
+
+	<header class="slds-modal__header">
+		<h1 class="slds-text-heading--medium">Affiliated Companies</h1>
+	</header>
+
+	<div id="outer">
+		<div class="inner"> <lightning:input aura:id="filter" type="text" name="filter" label="Search Filter:" /> </div>
+		<div class="inner"> &nbsp;&nbsp; </div>
+		<div class="inner"> <lightning:button label="Search" title="search" onclick="{! c.onSearch }" /> </div>
+	</div>
+
+	<lightning:dualListbox
+		aura:id="selectAccounts"
+		name="accounts"
+		sourceLabel="Available Accounts"
+		selectedLabel="Affiliated Accounts"
+		options="{!v.pickable}"
+		value="{!v.selected}"
+		requiredOptions="{!v.required}"
+	/>
+
+	<footer class="slds-modal__footer">
+		<lightning:button variant="brand" label="Cancel" name="Cancel" onclick="{!c.onCancel}"/>
+		<lightning:button variant="brand" label="Save" name="Save" onclick="{!c.onOK}"/>
+	</footer>
+</aura:component>

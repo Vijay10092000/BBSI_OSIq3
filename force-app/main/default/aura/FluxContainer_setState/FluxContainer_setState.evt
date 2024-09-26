@@ -1,0 +1,7 @@
+<!--
+	Flux Container code from an article on Medium.com by Jeffery Shivers
+	https://medium.com/@jefferyshivers/flux-and-lightning-components-5ce975027bef
+ -->
+<aura:event type="COMPONENT" description="FluxContainer_setState">
+	<aura:attribute name="newState" type="String" default=""/>
+</aura:event>

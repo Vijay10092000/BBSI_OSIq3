@@ -1,0 +1,112 @@
+<!--
+ - Copyright (c) 2018. Barrett Business Services, Inc. All Rights Reserved
+ - Created by agoganian on 10/17/2018.
+ -->
+<aura:component controller="PrcClientScenarioController" implements="flexipage:availableForAllPageTypes" access="global">
+	
+	<!-- Attributes -->
+	<aura:attribute name="clientPricingScenarioObj" type="sObject"/>
+	<aura:attribute name="renewalYearCommAmt" type="Currency" default="0"/>
+	<aura:attribute name="renewalYearBdmAmt" type="Currency" default="0"/>
+	<aura:attribute name="commissionData" type="Object[]"/>
+
+	<!-- Pricing Attributes -->
+	<aura:handler event="c:FluxContainer_getState" action="{!c.onAppEvent}"/>
+	<aura:registerEvent name="setState" type="c:FluxContainer_setState"/>
+	<aura:attribute name="containerName" type="String" default="commissions"/>
+
+	<!-- Footer Attributes -->
+	<aura:attribute name="totalCommContractYear" type="Decimal" default="0"/>
+	<aura:attribute name="totalCommRenewalYear" type="Decimal" default="0"/>
+	<aura:attribute name="commissionPercent" type="Decimal" default="0"/>
+
+	<!-- Common Attributes -->
+	<aura:attribute name="clientId" type="String"/>
+	<aura:attribute name="data" type="sObject"/>
+	<aura:attribute name="clientPricScenId" type="String"/>
+	<aura:attribute name="sObjectType" type="String" required="true" default="ClientPricingScenario__c" access="public" />
+	<aura:attribute name="maxRows" type="Integer" default="20" />
+	<aura:attribute name="records" type="Object[]" />
+	<aura:attribute name="columns" type="List" />
+	<aura:attribute name="isLoading" type="Boolean" default="false"/>
+	<aura:attribute name="isProspect" type="Boolean" default="false"/>
+
+	<aura:attribute name="noReferralPartner" type="Boolean" default="false"/>
+	<aura:attribute name="noBdm" type="Boolean" default="false"/>
+	
+	<!-- Common Handlers -->
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+	
+	<!-- Common Libraries -->
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+
+	<div class="slds-text-heading_small slds-p-bottom_large">
+		COMMISSION EXPENSES
+		<div class="slds-text-body_small slds-float_right">
+			<ui:inputCheckbox class="checkboxClass" value="{!v.noReferralPartner}" change="{!c.handleNoReferralPartner}" label="No Referral Partner"/>
+			<ui:inputCheckbox class="checkboxClass" value="{!v.noBdm}" change="{!c.handleNoBdm}" label="No BDM"/>
+		</div>
+	</div>
+	<div><br/><br/></div>
+	<div>
+		<lightning:datatable aura:id="commissionTable"
+				keyField="Id"
+				data="{! v.commissionData }"
+				columns="{! v.columns }"
+				onsave="{!c.handleSaveTable}"
+				onrowaction="{!c.handleRowAction}"
+				hideCheckboxColumn="true"/>
+	</div>
+
+	<!--  COMMISSION TABLE FOOTER -->
+	<div class="slds-grid slds-grid_align-center slds-p-top--small" id="commissionsFooter">
+		<div class="slds-align-top slds-col slds-size--1-of-1 slds-p-bottom--small" >
+			<table class="slds-table slds-table_cell-buffer slds-table_bordered slds-no-row-hover">
+				<thead>
+					<tr class="slds-line-height_reset">
+						<aura:if isTrue="{!v.isProspect}">
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Commission %">Commission %</div>
+							</th>
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Amount">Amount</div>
+							</th>
+						</aura:if>
+						<aura:if isTrue="{!!v.isProspect}">
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Commission % (Renewal Year)">Commission % (Renewal Year)</div>
+							</th>
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Contract Year Amount">Contract Year Amount</div>
+							</th>
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Renewal Year Amount">Renewal Year Amount</div>
+							</th>
+						</aura:if>
+					</tr>
+				</thead>
+				<tbody>
+					<tr class="slds-hint-parent">
+						<td>
+							<div class="slds-truncate" align="center">
+								<ui:outputNumber format="##0.00" value="{!v.commissionPercent}"/>
+							</div>
+						</td>
+						<aura:if isTrue="{!!v.isProspect}">
+							<td>
+								<div class="slds-truncate" align="center">
+									<ui:outputCurrency value="{!v.totalCommContractYear}"/>
+								</div>
+							</td>
+						</aura:if>
+						<td>
+							<div class="slds-truncate" align="center">
+								<ui:outputCurrency value="{!v.totalCommRenewalYear}"/>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</aura:component>

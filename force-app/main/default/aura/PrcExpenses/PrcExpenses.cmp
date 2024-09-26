@@ -1,0 +1,217 @@
+<!--
+ - Copyright (c) 2018. Barrett Business Services, Inc. All Rights Reserved
+ - Created by agoganian on 10/17/2018.
+ -->
+<aura:component controller="PrcExpensesController" implements="flexipage:availableForAllPageTypes" access="global">
+	<!-- Attributes -->
+	<!-- Client Investment By Unit -->
+	<aura:attribute name="isShowingAddExpenseForm" type="Boolean" default="false"/>
+	<aura:attribute name="newExpenseItem" type="PricingExpense__c"/>
+	<aura:attribute name="expenseCategories" type="Object[]"/>
+	<aura:attribute name="data" type="sObject"/>
+	<aura:attribute name="columns" type="List" />
+
+	<!-- Client Investment By % -->
+	<aura:attribute name="isShowingAddClientInvestmentForm" type="Boolean" default="false"/>
+	<aura:attribute name="newInvestmentItem" type="PricingClientInvestment__c"/>
+	<aura:attribute name="clientInvestmentMethods" type="Object[]"/>
+	<aura:attribute name="dataClientInvestments" type="sObject"/>
+	<aura:attribute name="columnsClientInvestments" type="List" />
+	<aura:attribute name="totalPayroll" type="Decimal" default="0"/>
+	<aura:attribute name="totalWcPremium" type="Decimal" default="0"/>
+	<aura:attribute name="totalMargin" type="Decimal" default="0"/>
+
+
+	<!-- Pricing Attributes -->
+	<aura:handler event="c:FluxContainer_getState" action="{!c.onAppEvent}"/>
+	<aura:registerEvent name="setState" type="c:FluxContainer_setState"/>
+	<aura:attribute name="containerName" type="String" default="expenses"/>
+
+	<!-- Footer Attributes -->
+	<aura:attribute name="totalInvestmentByUnit" type="Decimal" default="0"/>
+	<aura:attribute name="totalInvestmentByPercentage" type="Decimal" default="0"/>
+	<aura:attribute name="totalClientInvestment" type="Decimal" default="0"/>
+	<aura:attribute name="clientInvestmentPercent" type="Decimal" default="0"/>
+
+	<!-- Common Attributes -->
+	<aura:attribute name="clientId" type="String"/>
+	<aura:attribute name="clientPricScenId" type="String"/>
+	<aura:attribute name="sObjectType" type="String" required="true" default="PricingExpense__c" access="public" />
+	<aura:attribute name="maxRows" type="Integer" default="20" />
+	<aura:attribute name="records" type="Object[]" />
+	<aura:attribute name="isLoading" type="Boolean" default="false"/>
+	<aura:attribute name="isProspect" type="Boolean" default="false"/>
+
+	<!-- Common Handlers -->
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+	<!-- Common Libraries -->
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+
+	<!-- Client Investment By % -->
+	<div class="slds-text-heading_small slds-p-bottom--small">
+		CLIENT INVESTMENT BY UNIT
+	</div>
+	<div style="height: auto">
+		<lightning:datatable aura:id="expensesTable"
+				keyField="Id"
+				data="{! v.data }"
+				columns="{! v.columns }"
+				onsave="{!c.handleSaveExpenseTable}"
+				onrowaction="{! c.handleExpenseRowAction}"
+				hideCheckboxColumn="true"/>
+	</div>
+	<!-- Create new Client Investment By Unit -->
+	<aura:renderif isTrue="{! !v.isShowingAddExpenseForm }">
+		<div class="slds-m-top_small">
+			<lightning:button
+					label="Add"
+					variant="brand"
+					onclick="{!c.onOpenAddExpenseForm}"/>
+		</div>
+	</aura:renderif>
+	<aura:renderif isTrue="{! v.isShowingAddExpenseForm }">
+		<div aria-labelledby="newExpenseForm" >
+			<fieldset class="slds-box slds-theme--default slds-container--small">
+				<legend id="newExpenseForm" class="slds-text-heading--small slds-p-vertical--medium">
+				</legend>
+				<!-- Create new Client Investment by Unit Form -->
+				<form class="slds-form--stacked" >
+					<lightning:select aura:id="expenseForm" label="Select Category (required)" messageWhenValueMissing="Please select an Expense Category"
+									  name="expenseCategory" value="{!v.newExpenseItem.Category__c}" required="true">
+						<option value="">Select a Category</option>
+						<aura:iteration items="{!v.expenseCategories}" var="categoryOption">
+							<option text="{!categoryOption.label}" value="{!categoryOption.label}" selected="{!categoryOption.selected}"/>
+						</aura:iteration>
+						<option value="{!v.expenseCategories}"></option>
+					</lightning:select>
+					<lightning:input aura:id="expenseForm"
+									 type="text" label="Description"
+									 name="description"
+									 required="true"
+									 value="{!v.newExpenseItem.Description__c}"/>
+					<lightning:input aura:id="expenseForm"
+									 type="number" label="Units"
+									 name="quantity"
+									 step="1"
+									 required="true"
+									 value="{!v.newExpenseItem.Quantity__c}"/>
+					<lightning:input aura:id="expenseForm"
+									 type="number" label="Cost Per Unit"
+									 name="costEach"
+									 step="0.01"
+									 formatter="currency"
+									 required="true"
+									 value="{!v.newExpenseItem.Cost_Each__c}"/>
+					<lightning:button label="Submit"
+									  class="slds-m-top--medium"
+									  variant="brand"
+									  onclick="{!c.onCreateExpense}"/>
+					<lightning:button label="Cancel"
+									  class="slds-m-top--medium"
+									  variant="brand"
+									  onclick="{!c.onCancelExpense}"/>
+				</form>
+			</fieldset>
+		</div>
+	</aura:renderif>
+
+	<!-- Client Investment By % -->
+	<div class="slds-text-heading_small slds-p-bottom_large"></div>
+	<div class="slds-text-heading_small slds-p-bottom_small">
+		CLIENT INVESTMENT BY %
+	</div>
+	<div style="height: auto">
+		<lightning:datatable aura:id="clientInvestmentsTable"
+							 keyField="Id"
+							 data="{! v.dataClientInvestments }"
+							 columns="{! v.columnsClientInvestments }"
+							 onsave="{!c.handleSaveClientInvestmentTable}"
+							 onrowaction="{! c.handleClientInvestmentRowAction}"
+							 hideCheckboxColumn="true"/>
+	</div>
+	<!-- Create new Client Investment By Unit -->
+	<aura:renderif isTrue="{! !v.isShowingAddClientInvestmentForm }">
+		<div class="slds-m-top_small">
+			<lightning:button
+					label="Add"
+					variant="brand"
+					onclick="{!c.onOpenAddClientInvestmentForm}"/>
+		</div>
+	</aura:renderif>
+	<aura:renderif isTrue="{! v.isShowingAddClientInvestmentForm }">
+		<div aria-labelledby="newInvestmentForm" >
+			<fieldset class="slds-box slds-theme--default slds-container--small">
+				<legend id="newClientInvestmentForm" class="slds-text-heading--small slds-p-vertical--medium">
+				</legend>
+				<!-- Create new Client Investment By Percentage Form -->
+				<form class="slds-form--stacked" >
+					<lightning:input aura:id="investmentForm"
+									 type="text" label="Description"
+									 name="description"
+									 required="true"
+									 value="{!v.newInvestmentItem.Description__c}"/>
+					<lightning:select aura:id="investmentForm" label="Select Method (required)" messageWhenValueMissing="Please select a percentage method"
+									  name="expenseCategory" value="{!v.newInvestmentItem.Method__c}" required="true">
+						<option value="">Select a Category</option>
+						<aura:iteration items="{!v.clientInvestmentMethods}" var="methodOption">
+							<option text="{!methodOption.label}" value="{!methodOption.label}" selected="{!methodOption.selected}"/>
+						</aura:iteration>
+						<option value="{!v.clientInvestmentMethods}"></option>
+					</lightning:select>
+					<lightning:input aura:id="investmentForm" type="number" label="Rate" name="rate" step="0.01" required="true" value="{!v.newInvestmentItem.Rate__c}"/>
+					<lightning:button label="Submit" class="slds-m-top--medium" variant="brand" onclick="{!c.onCreateClientInvestment}"/>
+					<lightning:button label="Cancel" class="slds-m-top--medium" variant="brand" onclick="{!c.onCancelClientInvestment}"/>
+				</form>
+			</fieldset>
+		</div>
+	</aura:renderif>
+
+	<!-- EXPENSES TABLE FOOTER -->
+	<div class="slds-grid slds-grid_align-center slds-p-top--small" id="expensesFooter">
+		<div class="slds-align-top slds-col slds-size--1-of-1 slds-p-bottom--small" >
+			<table class="slds-table slds-table_cell-buffer slds-table_bordered slds-no-row-hover">
+				<thead>
+				<tr class="slds-line-height_reset">
+					<th class="slds-text-title_caps" scope="col">
+						<div class="slds-truncate" align="center" title="Total Investment By Unit">Total Investment By Unit</div>
+					</th>
+					<th class="slds-text-title_caps" scope="col">
+						<div class="slds-truncate" align="center" title="Total Investment By %">Total Investment By %</div>
+					</th>
+					<th class="slds-text-title_caps" scope="col">
+						<div class="slds-truncate" align="center" title="Total Client Investment">Total Client Investment</div>
+					</th>
+					<th class="slds-text-title_caps" scope="col">
+						<div class="slds-truncate" align="center" title="Client Investment %">Client Investment %</div>
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr class="slds-hint-parent">
+					<td>
+						<div class="slds-truncate" align="center">
+							<ui:outputCurrency value="{!v.totalInvestmentByUnit}"/>
+						</div>
+					</td>
+					<td>
+						<div class="slds-truncate" align="center">
+							<ui:outputCurrency value="{!v.totalInvestmentByPercentage}"/>
+						</div>
+					</td>
+					<td>
+						<div class="slds-truncate" align="center">
+							<ui:outputCurrency value="{!v.totalClientInvestment}"/>
+						</div>
+					</td>
+					<td>
+						<div class="slds-truncate" align="center">
+							<ui:outputNumber format="##0.00" value="{!v.clientInvestmentPercent}"/>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</aura:component>

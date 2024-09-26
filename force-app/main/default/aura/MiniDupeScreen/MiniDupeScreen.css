@@ -1,0 +1,22 @@
+.THIS {
+
+  }
+.THIS .tableheight{
+  width: 100%;
+
+}
+.THIS .componentheight{
+  height: 330px;
+}
+
+.THIS .slds-text-title--caps{ 
+    font-size: 10px;
+}
+
+.THIS .slds-table{
+    font-size: 10px;
+}
+
+.THIS .HIGHLIGHTCELL{
+    background-color:yellow;
+}

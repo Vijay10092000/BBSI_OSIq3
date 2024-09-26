@@ -1,0 +1,74 @@
+<aura:component
+	access="global"
+	controller="ApexInformationController"
+	implements="flexipage:availableForAllPageTypes"
+	description="Display Apex Class and Trigger information"
+>
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+	<aura:attribute name="header" type="String" access="public" default="Click Refresh to load data" />
+	<aura:attribute name="footer" type="String" access="public" />
+	<aura:attribute name="columns" type="List" access="public" />
+
+	<aura:attribute name="isLoading" type="Boolean" default="false" />
+	<aura:attribute name="records" type="Object" />
+	<aura:attribute name="messages" type="String[]" access="public" />
+	<aura:attribute name="sortBy" type="String" default="name"/>
+	<aura:attribute name="sortDirection" type="String" default="asc"/>
+
+	<lightning:card title="Apex Information">
+		<aura:if isTrue="{!v.isLoading}">
+			<lightning:spinner alternativeText="Loading..." />
+		</aura:if>
+
+		<aura:set attribute="actions">
+			<lightning:buttonIcon
+				iconName="utility:download"
+				variant="bare"
+				onclick="{! c.toCsv }"
+				alternativeText="Export All Data"
+				title="Export All Data"
+			/>
+			<lightning:buttonIcon
+				iconName="utility:refresh"
+				variant="bare"
+				onclick="{! c.refresh }"
+				alternativeText="Refresh"
+				title="Refresh"
+			/>
+		</aura:set>
+
+		<div
+			class="slds-text-title slds-var-p-bottom_small"
+			style="text-align: center"
+		>
+			<aura:unescapedHtml value="{!v.header}" />
+		</div>
+		
+		<p class="slds-var-p-horizontal_small">
+
+			<div style="height: 320px">
+				<lightning:datatable
+					aura:id="classes"
+					keyField="Id"
+					columns="{!v.columns}"
+					column-widths-mode="auto"
+					hideCheckboxColumn="true"
+					data="{!v.records}"
+					sortedBy="{!v.sortBy}"
+					sortedDirection="{!v.sortDirection}"
+					onsort="{!c.handleSort}"
+				/>
+			</div>
+		</p>
+			
+		<aura:set attribute="footer">
+			<div
+				class="slds-text-title slds-var-p-bottom_small"
+				style="text-align: center"
+			>
+				<aura:unescapedHtml value="{!v.footer}" />
+			</div>
+		</aura:set>
+	</lightning:card>
+</aura:component>

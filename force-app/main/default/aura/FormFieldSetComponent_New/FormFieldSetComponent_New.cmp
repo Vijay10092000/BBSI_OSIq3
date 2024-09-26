@@ -1,0 +1,31 @@
+<aura:component controller="FieldSetController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="recordId" type="String"  />
+    <aura:attribute name="formrecordId" type="String"  />
+    <aura:attribute name="fieldsAPIList" type="List"/>
+    <aura:attribute name="flag" type="Boolean" default="true" />
+
+    <div style="border:solid 1px #828282">
+        <div class="slds-page-header" style="background-color: White;" >
+            <div class="slds-media">
+                <div class="slds-media__body">
+                    <h1 class="slds-page-header__title slds-truncate slds-align-middle" 
+                        title="Form Information">Form Information</h1>
+                </div>
+            </div>
+<!--        </div>
+            
+        <div class="slds-page-header" style="background-color: White;" > -->
+            <aura:if isTrue="{!v.flag}">
+                <aura:set attribute="else">
+                    <lightning:recordForm
+                        recordId="{!v.formrecordId}"
+                        objectApiName="Form__c"
+                        fields="{!v.fieldsAPIList}"
+                        columns="2"
+                        mode="view" />
+                </aura:set>
+            </aura:if>
+        </div>
+    </div>
+</aura:component>

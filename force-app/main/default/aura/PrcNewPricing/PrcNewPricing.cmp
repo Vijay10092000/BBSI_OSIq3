@@ -1,0 +1,130 @@
+<!-- Copyright (c) 2019. Barrett Business Services, Inc. All Rights Reserved -->
+
+<aura:component description="PrcNewPricing" controller="PrcNewPricingController" implements="force:hasRecordId,flexipage:availableForAllPageTypes" access="global">
+    <!-- Common Attributes -->
+    <aura:attribute name="isLoading" type="Boolean" default="false"/>
+    <aura:attribute name="isProspect" type="Boolean" default="false"/>
+
+    <!-- Pricing Scenario Attributes -->
+    <aura:attribute name="scenarioColumns" type="List" />
+    <aura:attribute name="scenarioData" type="sObject"/>
+    <aura:attribute name="scenarioName" type="String" default=""/>
+    <aura:attribute name="openNewPricingDialog" type="Boolean" default="false"/>
+    
+    <!-- New Pricing Scenario Dialog -->
+    <aura:attribute name="selectedWcPolicy" type="String"/>
+    <aura:attribute name="selectedWcState" type="String"/>
+    <aura:attribute name="selectedWcCode" type="sObject"/>
+    <aura:attribute name="payrollDollars" type="Decimal"/>
+    <aura:attribute name="fteCount" type="Decimal"/>
+
+    <aura:attribute name="wcCodeData" type="sObject"/>
+    <aura:attribute name="wcCodeColumns" type="List"/>
+
+    <aura:attribute name="wcPolicies" type="sObject" />
+    <aura:attribute name="wcMap" type="sObject" />
+    <aura:attribute name="wcStates" type="sObject" />
+    <aura:attribute name="wcCodes" type="List" />
+    
+	<!-- Common Handlers -->
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+	
+	<!-- Common Libraries -->
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+    <aura:if isTrue="{!v.isLoading}"><lightning:spinner /></aura:if>
+
+    <!-- UI -->
+    <aura:if isTrue="{!v.isProspect}">
+        <div class="slds-box slds-theme_default">
+            <div class="slds-text-heading_small slds-p-bottom_small">
+                <span><lightning:icon size="small" iconName="action:log_event"/></span>
+                <span>&nbsp;Pricing Scenarios</span>
+            </div>
+            <div class="slds-grid slds-gutters slds-p-bottom_small">
+                <div class="slds-col slds-size_2-of-3">
+                    <lightning:input type="text" style="text-align:center" label="Scenario Name" value="{!v.scenarioName}"/>
+                </div>
+                <div class="slds-col slds-size_1-of-3">
+                    <br/><lightning:button variant="brand" onclick="{!c.onCreateNewScenario}">New Scenario</lightning:button>
+                </div>
+            </div>
+            <div class="slds-p-top_large" style="height:auto">
+                <lightning:datatable aura:id = "dataEntryTable" keyField="Id" data="{! v.scenarioData }" columns="{! v.scenarioColumns }" hideCheckboxColumn="true" onrowaction="{!c.handleRowAction}"/>
+            </div>
+        </div>
+    </aura:if>
+
+    <aura:if isTrue="{!v.openNewPricingDialog}">
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{! c.onCancelNewPricingDialog }"
+                                          alternativeText="close"
+                                          variant="brand"
+                                          class="slds-modal__close"/>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">New Pricing Scenario Data Entry</h2>
+                </header>
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-around_small" id="modal-content-id-1">
+                    <div class="slds-grid slds-wrap slds-text-align_center custom-container">
+                        <div class="slds-size_2-of-5 slds-max-small-size_1-of-1">
+                            <lightning:select aura:id="newPricing" label="W/C Policy" name="wcPolicy" value="{!v.selectedWcPolicy}" onchange="{!c.onChangeWcPolicy}" required="true">
+                                <option value="initial" text="Select a W/C Policy"/>
+                                <aura:iteration items="{!v.wcPolicies}" var="wcPolicy">
+                                    <option value="{!wcPolicy.HRP_Work_Comp_Policy__c}" text="{!wcPolicy.Display_Name__c}"/>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </div>
+
+                    <br/>
+
+                    <div class="slds-grid slds-wrap slds-text-align_center custom-container">
+                        <div class="slds-size_1-of-5 slds-max-small-size_1-of-1">
+                            <lightning:select aura:id="newPricingWcState" label="State" name="WcState" value="{!v.selectedWcState}" onchange="{!c.onChangeWcState}" required="true">
+                                <option value="initial" text="Select a State"/>
+                                <aura:iteration items="{!v.wcStates}" var="wcState">
+                                    <option value="{!wcState}" text="{!wcState}" />
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                        <div class="slds-size_1-of-5 slds-max-small-size_1-of-1">
+                            <lightning:select aura:id="newPricingWcCode" label="W/C Code" name="WcCode" value="{!v.selectedWcCode}" onchange="{!c.onChangeWcCode}" required="true">
+                                <option value="initial" text="Select a Code"/>
+                                <aura:iteration items="{!v.wcCodes}" var="wcCode">
+                                    <option value="{!wcCode.Label}" text="{!wcCode.Code}"/>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>      
+                        <div class="slds-size_1-of-5 slds-max-small-size_1-of-1">
+                            <lightning:input aura:id="newPricing" label="Payroll $" type="number" step="1" formatter="currency" value="{!v.payrollDollars}" min="0" required="true"/>
+                        </div>
+                        <div class="slds-size_1-of-5 slds-max-small-size_1-of-1">
+                            <lightning:input aura:id="newPricing" label="FTE Count" type="number" step="0.1" value="{!v.fteCount}" min="0" required="true"/>
+                        </div>
+                        <div class="slds-size_1-of-5 slds-max-small-size_1-of-1">
+                            <br/>
+                            <lightning:button label="Add" variant="brand" onclick="{!c.onAddNewWorkComp}"/>
+                        </div>
+                    </div>
+
+                    <div class="slds-p-top_large" style="height:auto">
+                        <lightning:datatable aura:id="wcNewCodesTable" keyField="Id" data="{!v.wcCodeData}" columns="{!v.wcCodeColumns}" hideCheckboxColumn="true" onrowaction="{!c.handleRowAction}"/>
+                    </div>
+                </div>
+                <div class="slds-modal__content slds-p-around_small" id="modal-content-id-1">
+                </div>
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                        <lightning:button variant="brand" label="Create" title="Create" onclick="{! c.onCreateNewPricing }"/>
+                        <lightning:button variant="brand" label="Cancel" title="Cancel" onclick="{! c.onCancelNewPricingDialog }"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--###### MODAL BOX Part END Here ######-->
+    </aura:if>
+</aura:component>

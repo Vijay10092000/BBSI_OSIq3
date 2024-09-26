@@ -1,0 +1,104 @@
+<aura:component description="XmodRecommended" controller="XmodRecommendedController" implements="force:hasRecordId,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome" access="global">
+    <!-- Recommended XMOD Attributes -->
+    <aura:attribute name="displayRecommendedXmod" type="Boolean" default="false"/>
+    <aura:attribute name="recommendedXmodData" type="sObject"/>
+    <aura:attribute name="recommendedXmodColumns" type="List" access="public" />
+    <aura:attribute name="recommendedXmodFilename" type="String" default=""/>
+
+    <!-- W/C Policy Mapping Attributes -->
+    <aura:attribute name="displayWcPolicyMapping" type="Boolean" default="false"/>
+    <aura:attribute name="wcPolicyData" type="sObject"/>
+    <aura:attribute name="wcPolicyColumns" type="List" access="public" />
+    <aura:attribute name="wcPolicyTableHeight" type="String" default="height:1000px" access="public"/>
+    <aura:attribute name="showAddNewWcPolicy" type="Boolean" default="false"/>
+    <aura:attribute name="newWcPolicy" type="WorkCompPolicyDisplayName__c"/>
+	<aura:attribute name="stateCodes" type="Object[]"/>
+    
+    <!-- Common Attributes -->
+    <aura:attribute name="isLoading" type="Boolean" default="false"/>
+    <lightning:notificationsLibrary aura:id="notificationLibrary"/>
+    <aura:if isTrue="{!v.isLoading}"><lightning:spinner /></aura:if>
+
+    <!-- Handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+    <!-- Start of Page -->
+    <div class="slds-m-top_small slds-text-heading_small slds-p-bottom_small">
+        <lightning:button label="Import XMOD" variant="brand" onclick="{!c.uploadFile}"/>&nbsp;&nbsp;&nbsp;
+        <lightning:helptext content="Please provide txt or csv files only" iconName="utility:info"/>&nbsp;
+        <input type="file" class="file" aura:id="file"/>
+        <br/>
+    </div>
+    <div class="slds-text-heading_small slds-p-bottom_x-large"></div>
+
+    <div class="slds-text-heading_small slds-p-bottom_medium">Reports</div>
+    <div class="slds-text-heading_small slds-p-bottom_medium">
+        <lightning:button label="Recommended Xmod" variant="brand" onclick="{!c.getXmods}"/>
+        <lightning:button label="W/C Policy Mapping" variant="brand" onclick="{!c.getWcPolicies}"/>
+    </div>
+
+    <div class="slds-m-top_small"></div>
+
+    <aura:if isTrue="{!v.displayRecommendedXmod}">
+        <div class="c-container">
+            <aura:if isTrue="{!v.recommendedXmodData}">
+                <div class="slds-text-heading_small slds-p-bottom_small" style="text-align:center">Recommended Xmod</div>
+                <div>
+                    <lightning:datatable aura:id="xmodRecommended"
+                                         keyField="Id"
+                                         data="{!v.recommendedXmodData}"
+                                         columns="{! v.recommendedXmodColumns }"
+                                         hideCheckboxColumn="true"/>
+                </div>
+            </aura:if>
+            <aura:if isTrue="{!!v.recommendedXmodData}">
+                <lightning:formattedText value=" Recommended XMOD Data Not Found"></lightning:formattedText>
+            </aura:if>
+        </div>
+    </aura:if>
+
+    <aura:if isTrue="{!v.displayWcPolicyMapping}">
+        <div class="c-container">
+            <!-- Add New WC Policy Button -->
+            <div class="slds-m-top_small">
+                <lightning:button label="Add W/C Policy" variant="brand" onclick="{!c.onAddNewWcPolicy}"/>
+            </div>
+
+            <!-- Add New WC Policy -->
+            <aura:if isTrue="{!v.showAddNewWcPolicy}">
+                <div aria-labelledby="newWcPolicyForm" >
+                    <fieldset class="slds-box slds-theme--default slds-container--small">
+                        <legend id="newWcPolicyForm" class="slds-text-heading--small slds-p-vertical--medium"></legend>
+                        <!-- Add New Work Comp Form -->
+                        <form class="slds-form--stacked">
+
+                            <lightning:select aura:id="addWcPolicyForm" label="Select State Code (required)" messageWhenValueMissing="Please select a State Code"
+                                                name="stateCode" value="{!v.newWcPolicy.State_Code__c}" required="true">
+                                <option value="">Select a State</option>
+                                <aura:iteration items="{!v.stateCodes}" var="stateOption">
+                                    <option text="{!stateOption.label}" value="{!stateOption.stateCode}" selected="{!stateOption.selected}"/>
+                                </aura:iteration>
+                                <option value="{!v.stateCodes}"></option>
+                            </lightning:select>
+                            <lightning:input aura:id="addWcPolicyForm" label="Display Name" name="displayName" value="{!v.newWcPolicy.Display_Name__c}" placeholder="" required="true"/>
+                            <lightning:input type="checkbox" aura:id="addWcPolicyForm" label="Include" name="include" checked="{!v.newWcPolicy.Include__c}"/>
+                            <lightning:button label="Submit" class="slds-m-top--medium" variant="brand" onclick="{!c.onAddWcPolicy}"/>
+                            <lightning:button label="Cancel" class="slds-m-top--medium" variant="brand" onclick="{!c.onCancelWcPolicy}"/>
+                        </form>
+                    </fieldset>
+                </div>
+            </aura:if>
+
+            <!-- WC Policy Mapping Table -->
+            <div class="slds-text-heading_small slds-p-bottom_small" style="text-align:center">W/C Policy Mapping</div>
+            <div style="height:500px">
+                <lightning:datatable aura:id="wcPolicyMappingTable"
+                    keyField="Id"
+                    data="{!v.wcPolicyData}"
+                    columns="{! v.wcPolicyColumns }"
+                    onsave="{!c.handleWcPolicySaveTable}"
+                    hideCheckboxColumn="true"/>
+            </div>
+        </div>
+    </aura:if>
+</aura:component>

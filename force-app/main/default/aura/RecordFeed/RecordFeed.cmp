@@ -1,0 +1,4 @@
+<aura:component implements="force:lightningQuickAction" description="Sample Component">
+    <forceChatter:publisher context="GLOBAL" />
+    <forceChatter:feed type="company" />
+</aura:component>

@@ -1,0 +1,9 @@
+.THIS #outer
+{
+	width:100%;
+	text-align: center;
+}
+.THIS .inner
+{
+	display: inline-block;
+}

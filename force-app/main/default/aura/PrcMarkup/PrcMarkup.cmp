@@ -1,0 +1,208 @@
+<!--
+ - Copyright (c) 2018. Barrett Business Services, Inc. All Rights Reserved
+ - Created by agoganian on 10/15/2018.
+ -->
+<aura:component controller="PrcMarkupController" implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+	<!-- Attributes -->
+	<aura:attribute name="clientId" type="String"/>
+	<aura:attribute name="clientName" type="String"/>
+	<aura:attribute name="totPayroll" type="Decimal" default="0"/>
+	<aura:attribute name="totalGrossMargin" type="Decimal" default="0"/>
+	<aura:attribute name="sumGrossMargin" type="Decimal" default="0"/>
+	<aura:attribute name="totFTE" type="Decimal" default="0"/>
+	<aura:attribute name="taxBurdenPercent" type="Decimal" default="0"/>
+	<aura:attribute name="taxBurdenPercentNoOwner" type="Decimal" default="0"/>
+	<aura:attribute name="commissionPercent" type="Decimal" default="0"/>
+	<aura:attribute name="expensesPercent" type="Decimal" default="0"/>
+
+	<aura:attribute name="marginRadioOptions" type="List" default="[
+					{'label': 'Based on percent of payroll in each work comp code', 'value': 'optPayroll'},
+					{'label': 'Based on margin in each work comp code', 'value': 'optMargin'}]"/>
+	<aura:attribute name="value" type="String" default="optPayroll"/>
+
+	<!-- Pricing Attributes -->
+	<aura:handler event="c:FluxContainer_getState" action="{!c.onAppEvent}"/>
+	<aura:registerEvent name="setState" type="c:FluxContainer_setState"/>
+	<aura:attribute name="containerName" type="String" default="markup"/>
+
+	<aura:attribute name="markupData" type="sObject"/>
+	<aura:attribute name="markupDraftValues" type="sObject"/>
+	<!--<aura:handler name="change" value="{!v.markupData}" action="{!c.onMarkupDataChange}"/>-->
+
+	<!-- Common Attributes -->
+	<aura:attribute name="data" type="sObject"/>
+	<aura:attribute name="map" type="Map"/>
+	<aura:attribute name="clientPricScenId" type="String"/>
+	<aura:attribute name="sObjectType" type="String" required="true" default="PricingWcCode__c" access="public" />
+	<aura:attribute name="maxRows" type="Integer" default="20" />
+	<aura:attribute name="records" type="Object[]" />
+	<aura:attribute name="columns" type="List" />
+	<aura:attribute name="isLoading" type="Boolean" default="false"/>
+	<aura:attribute name="errors" type="Object"/>
+	<aura:attribute name="isBillingHistoryOpen" type="boolean" default="false"/>
+	<aura:attribute name="bhData" type="sObject"/>
+	<aura:attribute name="bhColumns" type="List" />
+	<aura:attribute name="bhErrors" type="Object"/>
+	<aura:attribute name="isProspect" type="Boolean" default="false"/>
+
+	<!-- Common Handlers -->
+	<aura:handler name="init" value="{!this}" action="{!c.init}" />
+
+	<!-- Common Libraries -->
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+	<aura:if isTrue="{!v.isLoading}"><lightning:spinner /></aura:if>
+
+	<div class="slds-text-heading_small slds-p-bottom--small">
+		<aura:if isTrue="{!v.isProspect}">
+			<lightning:layoutItem>
+				MARKUP
+			</lightning:layoutItem>
+		</aura:if>
+				
+		<aura:if isTrue="{!!v.isProspect}">
+				<lightning:layout horizontalAlign="space">
+				<lightning:layoutItem>
+					RENEWAL YEAR MARKUP
+				</lightning:layoutItem>
+				<lightning:layoutItem alignmentBump="left">
+					<div class="slds-page-header__meta-text">
+						<lightning:button variant="brand" label="Current Markups" type="submit" onclick="{!c.openBillingHistory}"/>
+					</div>
+				</lightning:layoutItem>
+			</lightning:layout>
+		</aura:if>
+	</div>
+
+	<lightning:layout horizontalAlign="space">
+		<lightning:layoutItem size="3">
+			<div class="slds-p-horizontal_xx-large" >
+				<div class="slds-p-right_xx-large">
+					<lightning:input aura:id="grossMarginInput" type="number" name="marginInput"
+									 label="Enter Total Net Margin (optional)"
+									 formatter="currency" step="0.01"
+									 value="{! v.totalGrossMargin}"
+									 onchange="{! c.handleGrossMarginChange}"/>
+
+				</div>
+				<div class="slds-p-vertical_small ">
+					<lightning:radioGroup aura:id="applyMarginGroup"
+										  name="marginRadioGroup"
+										  label="Apply Net Margin"
+										  options="{! v.marginRadioOptions }"
+										  value="{! v.value }"
+										  type="radio" onchange="{! c.handleGrossMarginApplyType }" />
+				</div>
+				<div class="slds-p-vertical_small ">
+					<lightning:button variant="brand" label="Submit" title="Apply Net Margin" onclick="{! c.handleSubmitGrossMargin }" />
+				</div>
+			</div>
+		</lightning:layoutItem>
+		<lightning:layoutItem size="9">
+			<div style="height: auto">
+				<lightning:datatable aura:id="markupTable"
+									 keyField="Id"
+									 data="{! v.data }"
+									 columns="{! v.columns }"
+									 errors="{! v.errors }"
+									 onsave="{! c.handleSaveTable }"
+									 oncellchange="{! c.validateCellInput }"
+									 hideCheckboxColumn="true"/>
+			</div>
+			<!--  MARKUP TABLE FOOTER -->
+			<div class="slds-grid slds-grid_align-center  slds-p-top--small" id="markupFooter">
+				<div class="slds-align-top slds-col slds-size--1-of-1 " >
+					<table class="slds-table slds-table_cell-buffer slds-table_bordered slds-no-row-hover">
+						<thead>
+						<tr class="slds-line-height_reset">
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Net Margin">Net Margin</div>
+							</th>
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="FTE">FTE</div>
+							</th>
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Tax Burden %">Tax Burden %</div>
+							</th>
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Tax Burden % w/o Owner">Tax Burden % w/o Owner</div>
+							</th>
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Commission %">Commission %</div>
+							</th>
+							<th class="slds-text-title_caps" scope="col">
+								<div class="slds-truncate" align="center" title="Client Investment %">Client Investment %</div>
+							</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr class="slds-hint-parent">
+							<td>
+								<div class="slds-truncate" align="center" title="Net Margin">
+									<ui:outputCurrency value="{!v.sumGrossMargin}"/>
+								</div>
+							</td>
+							<td>
+								<div class="slds-truncate" align="center" title="FTE">
+									<ui:outputNumber value="{!v.totFTE}"/>
+								</div>
+							</td>
+							<td>
+								<div class="slds-truncate" align="center" title="Tax Burden %">
+									<ui:outputNumber format="##0.00" value="{!v.taxBurdenPercent}"/>
+								</div>
+							</td>
+							<td>
+								<div class="slds-truncate" align="center" title="Tax Burden % w/o Owner">
+									<ui:outputNumber format="##0.00" value="{!v.taxBurdenPercentNoOwner}"/>
+								</div>
+							</td>
+							<td>
+								<div class="slds-truncate" align="center" title="Commission %">
+									<ui:outputNumber format="##0.00" value="{!v.commissionPercent}"/>
+								</div>
+							</td>
+							<td>
+								<div class="slds-truncate" align="center" title="Client Investment %">
+									<ui:outputNumber format="##0.00" value="{!v.expensesPercent}"/>
+								</div>
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</lightning:layoutItem>
+	</lightning:layout>
+
+	<!--Use aura:if tag to display Model Box, on the bese of conditions. [isOpen boolean attribute] -->
+	<aura:if isTrue="{!v.isBillingHistoryOpen}">
+		<!--###### MODAL BOX Start######-->
+		<section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+			<div class="slds-modal__container">
+				<!-- ###### MODAL BOX HEADER Start ######-->
+				<header class="slds-modal__header">
+					<lightning:buttonIcon iconName="utility:close"
+										  onclick="{! c.closeBillingHistory }"
+										  alternativeText="close"
+										  variant="brand"
+										  class="slds-modal__close"/>
+					<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Current Markups for {!v.clientId}&nbsp;{!v.clientName}</h2>
+				</header>
+				<!--###### MODAL BOX BODY Part Start######-->
+				<div class="slds-modal__content slds-p-around_small" id="modal-content-id-1">
+						<lightning:datatable aura:id="billingHistoryTable"
+											 keyField="Id"
+											 data="{! v.bhData}"
+											 columns="{! v.bhColumns }"
+											 hideCheckboxColumn="true"/>
+				</div>
+				<!--###### MODAL BOX FOOTER Part Start ######-->
+				<footer class="slds-modal__footer">
+					<lightning:button variant="brand" label="Close" title="Close" onclick="{!c.closeBillingHistory}"/>
+				</footer>
+			</div>
+		</section>
+		<div class="slds-backdrop slds-backdrop_open"></div>
+		<!--###### MODAL BOX Part END Here ######-->
+	</aura:if>
+</aura:component>

@@ -1,0 +1,88 @@
+<aura:component controller="DupeCatcherController" implements="flexipage:availableForAllPageTypes,force:appHostable,force:hasRecordId" access="global">
+  <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+  <aura:handler event="force:refreshView" action="{!c.doInit}" />
+  <aura:attribute name="duplicates" type="dupeCatcherLightningWrapper[]" />
+  <aura:attribute name="lightningPage" type="Boolean" default="true" />
+  <aura:attribute name="archive" type="Boolean" default="false" />
+  
+  <aura:attribute name="mouseStart" type="string" />
+  <aura:attribute name="oldWidth" type="string" />
+ 
+  <aura:if isTrue="{!v.duplicates.length > 0}">
+  <div class="c-container">
+  <div aura:id="scrollableArea" class="componentheight">
+    <aura:if isTrue="{!v.lightningPage}">
+    <header>
+      <h2 class="slds-text-heading--small slds-m-bottom--small slds-text-align_center">Possible Duplicates</h2>
+    </header>
+    </aura:if>
+  <aura:if isTrue="{!v.duplicates[0].foundmatches}">
+    <aura:iteration items="{!v.duplicates}" var="wrapper">
+      <table class="slds-table slds-table--bordered slds-table--fixed-layout slds-box slds-max-small-table--stacked-horizontal" role="grid">
+        <thead>
+          <tr class="slds-line-height--reset">
+          		<th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="Owner">Owner</span>
+                </th>
+            	<th scope="col" class="slds-text-title--caps"> 
+                    <span class="slds-truncate" title="Branch">Branch</span>
+                </th>
+            	<th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="Name">Name</span>
+                </th>
+            	<th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="Company">Company</span>
+                </th>
+              <th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="Company">DBA</span>
+                </th>
+                <th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="Phone">Phone</span>
+                </th>
+            	<th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="FEIN">FEIN</span>
+                </th>
+            	<th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="Street">Street</span>
+                </th>
+            	<th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="RecordType">Record Type</span>
+                </th>
+                <th scope="col" class="slds-text-title--caps">
+                    <span class="slds-truncate" title="CreatedDate">Created Date</span>
+                </th>
+          </tr>
+        </thead>
+        <tbody>
+         <aura:if isTrue="{!wrapper.allMatches.length > 0}">
+          <aura:iteration items="{!wrapper.allMatches}" var="FEIN">
+            <tr>
+                  <td><div class="slds-truncate">{!FEIN.Owner.FirstName}&nbsp;{!FEIN.Owner.LastName}</div></td>
+                  <td><div class="slds-truncate" >{!FEIN.Branch.Name}</div></td>
+                  <aura:if isTrue="{!v.lightningPage}">
+                     <td><div class="{!FEIN.NameMatch ? 'HIGHLIGHTCELL' : '' + slds-truncate}" ><a href="{!'/one/one.app?#/sObject/' + FEIN.recordID +'/view'}" target="_blank}">{!FEIN.Name}</a></div></td>
+              	  <aura:set attribute="else">
+              		 <td><div class="{!FEIN.NameMatch ? 'HIGHLIGHTCELL' : '' + slds-truncate}" ><a href="{!'/' +FEIN.recordID}" target="_blank}">{!FEIN.Name}</a></div></td>
+	              </aura:set>
+    	          </aura:if>
+                  <td><div class="{!FEIN.CompanyMatch ? 'HIGHLIGHTCELL' : '' + ' slds-truncate'}" >{!FEIN.Company}</div></td>
+                  <td><div class="{!FEIN.DBAMatch ? 'HIGHLIGHTCELL' : '' +  ' slds-truncate'}" >{!FEIN.DBAName}</div></td>
+                  <td><div class="slds-truncate" >{!FEIN.Phone}</div></td>
+                  <td><div class="{!FEIN.FEINMatch ? 'HIGHLIGHTCELL' : '' + ' slds-truncate'}" >{!FEIN.FEIN}</div></td>
+                  <td><div class="slds-truncate" >{!FEIN.Street}</div></td>
+                  <td><div class="slds-truncate" >{!FEIN.recordType}</div></td>
+         		  <td role="gridcell"><div class="slds-truncate" ><ui:outputDate value="{!FEIN.createdDate}" /></div></td>
+            </tr>
+          </aura:iteration>
+        </aura:if>
+        </tbody>
+      </table>
+    </aura:iteration>
+    <aura:set attribute="else">
+           <h2 class="slds-text-heading--small slds-m-bottom--small slds-text-align_center">No Duplicates Found</h2>
+    </aura:set>
+  </aura:if>
+</div>
+</div>
+</aura:if>
+</aura:component>

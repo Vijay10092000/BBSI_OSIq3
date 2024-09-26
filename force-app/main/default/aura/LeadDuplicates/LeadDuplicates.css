@@ -1,0 +1,33 @@
+.THIS {
+
+}
+
+.THIS .tableheight{
+width: 100%;
+
+}
+.THIS .componentheight{
+height: 100px;
+}
+
+.THIS .slds-text-title--caps{
+  font-size: 10px;
+}
+
+.THIS .slds-table{
+  font-size: 10px;
+}
+
+.THIS .HIGHLIGHTCELL{
+  background-color:yellow;
+}
+
+.THIS h3 {
+	display: inline;
+	font-size: 1.17em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	margin-left: 0;
+	margin-right: 0;
+	font-weight: normal;
+}

@@ -1,0 +1,65 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,flexipage:availableForRecordHome,force:lightningQuickActionWithoutHeader" 
+                access="global"
+                controller="Referral_Partner_Services">
+    <!-- DELETE AS PART OF RPC PHASE 4
+    <aura:attribute name="comments"       type="String"/>
+    <aura:attribute name="commissionType" type="String"/>
+    <aura:attribute name="commissionRate" type="Decimal"/>
+    <aura:attribute name="effectiveDate"  type="Date"/>
+    <aura:attribute name="typePickValues" type="String[]"/>
+    <aura:attribute name="rpsRecord"      type="Referral_Partner__c"/>
+    <aura:attribute name="showSpinner"    type="Boolean"/>
+
+    <aura:handler name="init" value="{!this}"  action="{!c.doInit}"/>
+
+    <lightning:spinner class="{!v.showSpinner ? 'spinner-depth' : 'slds-hide'}" variant="brand" alternativeText="Processing" />    
+    <br/>    
+    <lightning:icon iconName="standard:user" style="margin-right:10px"/>
+    <span style="font-size:1rem">Request Commission Type/Rate Change</span>
+    <br/>
+    <span style="font-weight:700"><aura:text value="{!v.rpsRecord.Name}"/></span>
+    <br/>
+    
+    <div class="modal-footer slds-modal__footer" style="padding:0px;"/>
+
+    <lightning:layout>
+        <lightning:layoutItem size="4">
+            <lightning:select aura:id="pickType" label="Commission Type" value="{!v.commissionType}" required="true" onchange="{!c.updateType}">
+                <aura:iteration items="{!v.typePickValues}" var="item">
+                    <option value="{!item.value}">
+                        {!item}
+                    </option>
+                </aura:iteration>
+            </lightning:select>
+        </lightning:layoutItem>
+    </lightning:layout>
+
+    <lightning:layout>
+        <lightning:layoutItem size="4">
+            <lightning:input aura:id="inputField" label="Commission Rate %" value="{!v.commissionRate}" type="number" step="0.01" required="true"/> 
+        </lightning:layoutItem>
+    </lightning:layout>
+
+    <lightning:layout>
+        <lightning:layoutItem size="4">
+    		<lightning:input aura:id="inputField" label="Effective Date" value="{!v.effectiveDate}" type="date" required="true"/> 
+        </lightning:layoutItem>
+    </lightning:layout>
+
+    <lightning:layout>
+        <lightning:layoutItem size="12">
+			<lightning:textarea label="Comments" value="{!v.comments}"/> 
+        </lightning:layoutItem>
+    </lightning:layout>
+
+    <div class="modal-footer slds-modal__footer">
+        <lightning:layout>    
+            <lightning:layoutItem size="8"/>
+            <lightning:layoutItem size="4">
+                <lightning:button variant="brand" label="Submit for Approval" onclick="{!c.onSave}" />    
+                
+            </lightning:layoutItem>
+        </lightning:layout>
+    </div>
+     -->
+</aura:component>

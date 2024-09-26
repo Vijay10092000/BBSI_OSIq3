@@ -1,0 +1,10 @@
+.THIS {
+}
+
+.THIS .slds-button_icon-bare{
+    display: none;
+}
+
+.THIS .slds-th__action {
+    justify-content: center !important;
+}

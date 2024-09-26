@@ -1,0 +1,4 @@
+<design:component >
+	<design:attribute name="countAccounts" label="Maximum Accounts returned" required="true" default="20" />
+	<design:attribute name="allowTypeSelection" label="Allow Type selection?" required="true" default="false" />
+</design:component>

@@ -1,0 +1,172 @@
+<aura:component controller="KnowledgeArticleController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <!--attributes-->
+    <aura:attribute name="spinnervisible" type="Boolean" default="false"/>
+    <aura:attribute name="issearching" type="Boolean" default="false"/>
+    <aura:attribute name="error" type="String"/>
+    <aura:attribute name="dataCatLocOptions" type="List" />
+    <aura:attribute name="dataCatAppOptions" type="List" />
+    <aura:attribute name="dataCatRoleOptions" type="List" />
+    <aura:attribute name="allBPKAObjList" type="Object"/>
+    <aura:attribute name="bpKAObjList" type="Object"/>
+    <aura:attribute name="openDoc" type="Boolean"/>
+    <aura:attribute name="selDocId" type="String"/>
+    
+    <aura:attribute name="dataCatAllLocsList" type="List"/>
+    <aura:attribute name="dataCatAllAppsList" type="List"/>
+    <aura:attribute name="dataCatAllRolesList" type="List"/>
+    
+    <aura:attribute name="dataCatAllParentLocsMap" type="Map"/>
+    <aura:attribute name="dataCatAllParentAppsMap" type="Map"/>
+    <aura:attribute name="dataCatAllParentRolesMap" type="Map"/>
+    
+    <aura:attribute name="dataCatAllLocsMap" type="Map"/>
+    <aura:attribute name="dataCatAllAppsMap" type="Map"/>
+    <aura:attribute name="dataCatAllRolesMap" type="Map"/>
+    
+    <!--attributes-->
+    
+    <!--event handlers-->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!--event handlers-->
+    
+    <div style="background-color: white;">
+        <!-- PAGE HEADER -->
+        <lightning:layout class="slds-page-header slds-page-header--object-home">
+            <lightning:layoutItem>
+                <lightning:icon iconName="standard:knowledge" alternativeText="My Expenses"/>
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 style="font-weight:bold;font-size:20px">Knowledge Articles</h1>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+        <!-- / PAGE HEADER -->
+        
+        <!-- Display errors, if any -->
+        <aura:if isTrue="{!not(empty(v.error))}">
+            <div class="recordError">
+                <ui:message title="" severity="error" closable="false" class="slds-theme_alert-texture">
+                    <lightning:icon iconName="utility:error" alternativeText="Error!" variant="error" size="small"/>
+                    &nbsp;<b>{!v.error}</b>
+                </ui:message>
+            </div>
+        </aura:if>
+        
+        <div class="slds-grid slds-wrap" >
+            <div class="slds-p-horizontal_small slds-size--1-of-1">
+                <lightning:input aura:id="search-article" name="search-article" placeholder="Search Knowledge..." type="search" isLoading="{! v.issearching }" onchange="{! c.onFilterChange }"/>
+            </div>
+            
+            <div class="slds-grid slds-wrap slds-size--1-of-1 slds-m-top_small">
+                <div class="slds-grid slds-wrap slds-p-horizontal_small slds-size--1-of-1">
+                    <div class="slds-p-left_xx-small slds-p-right_xx-small slds-size--1-of-4">
+                        <lightning:select name="selDataCatLocOption" aura:id="selDataCatLocOption" label="Location" onchange="{!c.onFilterChange}">
+                            <aura:iteration items="{!v.dataCatLocOptions}" var="item">
+                                <option text="{!item.label}" value="{!item.value}" selected="{!item.selected}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-p-left_xx-small slds-p-right_xx-small slds-size--1-of-4">
+                        <lightning:select name="selDataCatAppOption" aura:id="selDataCatAppOption" label="Application" onchange="{!c.onFilterChange}">
+                            <aura:iteration items="{!v.dataCatAppOptions}" var="item">
+                                <option text="{!item.label}" value="{!item.value}" selected="{!item.selected}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-p-left_xx-small slds-p-right_xx-small slds-size--1-of-4">
+                        <lightning:select name="selDataCatRoleOption" aura:id="selDataCatRoleOption" label="Role" onchange="{!c.onFilterChange}">
+                            <aura:iteration items="{!v.dataCatRoleOptions}" var="item">
+                                <option text="{!item.label}" value="{!item.value}" selected="{!item.selected}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-p-left_small slds-p-right_xx-small slds-size--1-of-4">
+                        <div class="slds-m-top_x-large">
+                            <a onclick="{!c.reset}">Reset</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slds-size--1-of-1" >
+                <div class="slds-grid slds-wrap slds-p-horizontal_large slds-m-top_small slds-size--1-of-1">
+                    <lightning:icon iconName="standard:article" size="small" alternativeText="Articles" />
+                    <div class="slds-truncate message-text_bold message-text_size slds-m-left_x-small" title="Articles">Articles</div>
+                </div>
+                
+                <div class="slds-scrollable slds-p-horizontal_large slds-size--1-of-1 slds-m-bottom_x-small" style="max-height:300px">
+                    <aura:if isTrue="{! !empty(v.bpKAObjList)}">
+                        <aura:iteration items="{!v.bpKAObjList}" var="bpKAObjList">
+                            <div class="slds-grid slds-wrap slds-m-top_xx-small slds-border_bottom" >
+                                <div class="slds-p-horizontal--x-small slds-size--1-of-1">
+                                    <!--<b><a id="{!bpKAObjList.Id}" style="font-size:16px" target="_blank" href="{!'/' + 'lightning/r/Best_Practice__kav/' + bpKAObjList.Id + '/view'}"><aura:unescapedHtml value="{!bpKAObjList.Title}"/></a></b>-->
+                                    <b><a id="{!bpKAObjList.Id}" style="font-size:16px" onclick="{!c.navigateToRecord}"><u><aura:unescapedHtml value="{!bpKAObjList.Title}"/></u></a></b>
+                                </div>
+                                <div class="slds-p-horizontal--x-small slds-size--1-of-1">
+                                    <aura:unescapedHtml value="{!bpKAObjList.Summary}"/>
+                                </div>
+                                <div class="slds-p-horizontal--x-small slds-size--1-of-1">
+                                    <span style="font-size:14px">
+                                        <aura:unescapedHtml value="{!bpKAObjList.ArticleNumber}"/>
+                                        <lightning:icon iconName="utility:record" alternativeText=" " size="xx-small" class="slds-m-horizontal_xx-small"/>
+                                        <aura:unescapedHtml value="{!bpKAObjList.ArticleType}"/>
+                                        <lightning:icon iconName="utility:record" alternativeText=" " size="xx-small" class="slds-m-horizontal_xx-small"/>Last Published 
+                                        <aura:unescapedHtml value="{!bpKAObjList.LastPublishedDate}"/>
+                                    </span>
+                                    
+                                    <!--{!bpKAObjList.ArticleNumber + ' * ' + bpKAObjList.ArticleType + ' * Last Published ' + bpKAObjList.LastPublishedDate}-->
+                                </div>
+                                <div class="slds-p-horizontal--x-small slds-size--1-of-1 slds-m-bottom_x-small">
+                                    <span style="font-size:13px">
+                                        Attachments: 
+                                        <aura:if isTrue="{! !empty(bpKAObjList.articleCVList)}">
+                                            <aura:iteration items="{!bpKAObjList.articleCVList}" var="articleCVList">
+                                                <lightning:icon iconName="{!articleCVList.iconName}" alternativeText=" " size="x-small" class="slds-m-horizontal_xx-small"/>
+                                                <!--<a class="slds-m-top-small" id="{!articleCVList.Id}" target="_blank" href="{!'/' + articleCVList.Id}"><aura:unescapedHtml value="{!articleCVList.Title}"/></a>-->
+                                                <a class="slds-m-top-small" id="{!articleCVList.ContentDocumentId}" onclick="{!c.openSelDoc}"><aura:unescapedHtml value="{!articleCVList.Title}"/></a>
+                                            </aura:iteration>
+                                            <aura:set attribute="else">
+                                                N/A
+                                            </aura:set>
+                                        </aura:if>
+                                    </span>
+                                </div>
+                            </div>
+                        </aura:iteration>
+                        <aura:set attribute="else">
+                            <div class="slds-truncate slds-align_absolute-center message-text_bold slds-m-vertical_small">
+                                <div class="slds-grid slds-wrap">
+                                    <lightning:icon iconName="utility:warning" size="small" alternativeText="Warning" variant="warning" title="Warning"/>
+                                    <div class="slds-truncate message-text_bold message-text_size slds-m-left_x-small">No matches found</div>
+                                </div>
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <aura:if isTrue="{! v.openDoc}">
+    <!--a:if isTrue="{!and(v.isOpen, v.codeString != null)}">-->
+        <!--###### MODAL BOX Start######--> 
+        <section onclick="{!c.closeModel}" role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center" id="modal-content-id-1" style="background:transparent;">
+                    <div style="width: 50%; margin: 0 auto;">
+                        <lightning:fileCard fileId="{!v.selDocId}" description=""/>
+                    </div>
+                </div>
+                <!--###### MODAL BOX BODY Part End######-->
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--###### MODAL BOX Part END Here ######-->
+    </aura:if>
+    
+    <aura:if isTrue="{!v.spinnervisible == true}">
+        <lightning:spinner variant="brand" size="large" aura:id="spinner" class="slds-is-fixed"/>
+    </aura:if>
+</aura:component>

@@ -1,0 +1,125 @@
+<!--
+  - Copyright (c) 2018. Barrett Business Services, Inc. All Rights Reserved
+  -->
+<aura:component controller="PrcScenarioController" implements="force:hasRecordId,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome" access="global">
+
+	<!-- Attributes -->
+	<aura:attribute name="renewal" type="sObject"/>
+	<aura:attribute name="pricingScenario" type="sObject"/>
+	<aura:attribute name="clientPricingScenario" type="sObject"/>
+	<aura:attribute name="scenarioName" type="String"/>
+	<aura:attribute name="clientScenarioList" type="sObject"/>
+	<aura:attribute name="selectedClient_ScenarioId" type="Id"/>
+	<aura:attribute name="selectedReport" type="String" />
+	<aura:attribute name="reportOptions" type="sObject"/>
+	<aura:attribute name="renewalDate" type="Date"/>
+	<aura:attribute name="isProspect" type="Boolean"/>
+	<aura:attribute name="opportunityLink" type="String"/>
+
+	<!-- Handlers -->
+
+	<!-- Common Attributes  default="a1BW0000004Xe8m"  a1BW0000004XhrtMAC -->
+	<aura:attribute name="recordId" type="Id" access="public" default="a1BW0000004XhrtMAC"/>
+	<aura:attribute name="sObjectType" type="String" required="true" default="PricingScenario__c"/>
+	<aura:attribute name="maxRows" type="Integer" default="20" />
+	<aura:attribute name="fields" type="List" />
+	<aura:attribute name="records" type="Object[]" />
+	<aura:attribute name="columns" type="List" />
+	<aura:attribute name="sObjectInfo" type="Object" default="PricingScenario__c"/>
+	<aura:attribute name="isLoading" type="Boolean" default="false"/>
+	<aura:attribute name="disabled" type="Boolean" default="true" />
+	<aura:attribute name="saved" type="Boolean" default="true" />
+
+	<!-- Common Handlers -->
+	<aura:handler name="init" value="{!this}" action="{!c.init}"/>
+
+	<!-- Common Libraries -->
+	<lightning:notificationsLibrary aura:id="notifLib"/>
+
+	<aura:if isTrue="{!v.isLoading}">
+		<lightning:spinner />
+	</aura:if>
+
+	<div class="slds-theme_shade">
+		<lightning:recordEditForm aura:id="pricingScenarioForm" recordId="{!v.recordId}"
+								  objectApiName="{!v.sObjectType}"
+								  onload="{!c.handleLoad}"
+								  onsubmit="{!c.handleSubmit}"
+								  onsuccess="{!c.handleSuccess}">
+			<div class="c-container">
+				<lightning:layout horizontalAlign="space" >
+					<lightning:layoutItem padding="around-small">
+						<div class="slds-text-heading_small">
+							{!v.renewal.Name}
+						</div>
+					</lightning:layoutItem>
+					<lightning:layoutItem padding="around-small">
+						<div class="slds-text-heading_small">
+							Pricing Scenario : {!v.scenarioName}
+						</div>
+					</lightning:layoutItem>
+					<lightning:layoutItem padding="around-small">
+						<div class="slds-text-heading_small">
+							Renewal Date : <ui:outputDate value="{!v.renewal.Renewal_Date_Add_1__c}"/>
+						</div>
+					</lightning:layoutItem>
+				</lightning:layout>
+			</div>
+			<div class="slds-grid slds-grid_align-space slds-box">
+				<div class="slds-col slds-size_4-of-12 slds-p-horizontal_medium">
+					<aura:if isTrue="{!v.isProspect}">
+						&nbsp;Oppportunity Name<br/>
+						&nbsp;<lightning:formattedUrl value="{!v.opportunityLink}" label="{!v.renewal.Name}" target="_blank"/><br/><br/>
+					</aura:if>
+					<aura:if isTrue="{!!v.isProspect}">
+						<lightning:outputField fieldName="Renewal__c"/>
+					</aura:if>
+					<lightning:outputField fieldName="FEIN__c"/>
+					<lightning:outputField fieldName="OwnerId"/>
+					<lightning:outputField fieldName="CreatedDate__c"/>
+					<lightning:outputField fieldName="LastModifiedDate"/>
+				</div>
+				<div class="slds-col slds-size_8-of-12 slds-p-horizontal_medium">
+					<lightning:outputField fieldName="Status__c"/>
+					<lightning:inputField fieldName="ScenarioName__c" onchange="{!c.handleChange}"/>
+					<lightning:inputField fieldName="Notes__c" onchange="{!c.handleChange}"/>
+					<div class="slds-m-top_medium">
+						<lightning:button disabled="{!v.disabled}" variant="brand" type="submit" name="save" label="Save" />
+					</div>
+				</div>
+				<!-- the messages component is for error messages -->
+				<lightning:messages />
+			</div>
+		</lightning:recordEditForm>
+		<div class="slds-grid slds-grid_align-space slds-box">
+			<div class="slds-col slds-size_4-of-12 slds-p-horizontal_medium">
+				<br/>
+				<lightning:button variant="brand" label="Summary Worksheet" onclick="{!c.downloadExcel}"/>
+			</div>
+			<div class="slds-col slds-size_8-of-12 slds-p-horizontal_medium">
+				<lightning:select aura:id="selectClient" label="Select Client"
+								  messageWhenValueMissing="Please select a Client" name="selectedClientId"
+								  value="{!v.selectedClient_ScenarioId}" required="true" onchange="{!c.handleClientChange}">
+					<aura:iteration items="{!v.clientScenarioList}" var="clientOption">
+						<option text="{!clientOption.label}" value="{!clientOption.Id}" selected="{!clientOption.selected}"/>
+					</aura:iteration>
+				</lightning:select>
+			</div>
+		</div>
+		<div class="slds-grid slds-grid_align-space slds-box">
+			<div class="slds-col slds-size_4-of-12 slds-p-horizontal_medium">
+				<lightning:select aura:id="selectedReport" label="Select Report" name="selectedReport"
+								  value="{!v.selectedReport}" required="false">
+					<aura:iteration items="{!v.reportOptions}" var="report">
+						<option text="{!report}" value="{!report}" />
+					</aura:iteration>
+				</lightning:select>
+			</div>
+			<div class="slds-col slds-size_8-of-12 slds-p-horizontal_medium">
+				<br/>
+				<lightning:button variant="brand" label="Create Report" onclick="{!c.createReport}"/>
+			</div>
+		</div>
+		<c:PrcClientScenario aura:id="clientScenarioComp" sObjectType="ClientPricingScenario__c"/>
+	</div>
+</aura:component>

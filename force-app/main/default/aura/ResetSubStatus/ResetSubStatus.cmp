@@ -1,0 +1,13 @@
+<aura:component implements="lightning:availableForFlowScreens,flexipage:availableForRecordHome,force:hasRecordId,lightning:isUrlAddressable" access="global">
+	<aura:attribute name="record" type="Object" />
+	<aura:attribute name="simpleRecord" type="Object" />
+	<aura:attribute name="recordError" type="String" />
+	<force:recordData aura:id="recordEditor"
+	    fields="Sub_Status__c"
+	    recordId="{!v.recordId}"
+	    targetError="{!v.recordError}"
+	    targetRecord="{!v.record}"
+	    targetFields ="{!v.simpleRecord}"
+	    mode="EDIT" />
+	<lightning:button class="slds-align_absolute-center" variant="brand" label="Clear Alert" title="Clear Alert" onclick="{!c.saveRecordCntrlr}"/>
+</aura:component>
